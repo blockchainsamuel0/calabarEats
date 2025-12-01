@@ -7,28 +7,34 @@
       "imageHint": "jollof rice"
     },
     {
-      "id": "efo-riro",
-      "description": "A bowl of Efo Riro soup served with fufu.",
-      "imageUrl": "https://images.unsplash.com/photo-1603105037880-880cd4edfb0d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHx2ZWdldGFibGUlMjBzb3VwfGVufDB8fHx8MTc2NDU2NzM4NHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "id": "afang-soup",
+      "description": "A traditional Calabar Afang soup.",
+      "imageUrl": "https://images.unsplash.com/photo-1665594051407-7385d281ad76?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxhZmFuZyUyMHNvdXB8ZW58MHx8fHwxNzY0NjAwMzQxfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "afang soup"
+    },
+    {
+      "id": "edikaikong-soup",
+      "description": "A rich and nutritious Edikaikong soup.",
+      "imageUrl": "https://images.unsplash.com/photo-1511099968099-8da3c3fa3950?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHx2ZWdldGFibGUlMjBzb3VwfGVufDB8fHx8MTc2NDU2NzM4NHww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "vegetable soup"
     },
     {
-      "id": "fried-plantain",
-      "description": "A side of sweet, fried plantains.",
-      "imageUrl": "https://images.unsplash.com/photo-1662722794692-2f955a0d2dd8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxmcmllZCUyMHBsYW50YWlufGVufDB8fHx8MTc2NDYwMDM0MXww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "fried plantain"
+      "id": "afia-efere",
+      "description": "A bowl of spicy Afia Efere, also known as white soup.",
+      "imageUrl": "https://images.unsplash.com/photo-1622744929532-af45c7d4a77d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHx3aGl0ZSUyMHNvdXB8ZW58MHx8fHwxNzY0NjAxMjU2fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "white soup"
     },
     {
-      "id": "meat-pie",
-      "description": "A savory Nigerian meat pie.",
-      "imageUrl": "https://images.unsplash.com/photo-1606658635625-cae1c819548c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8bWVhdCUyMHBpZXxlbnwwfHx8fDE3NjQ2MDAzNDF8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "meat pie"
+      "id": "ekpang-nkukwo",
+      "description": "A dish of Ekpang Nkukwo, a cocoyam pottage.",
+      "imageUrl": "https://picsum.photos/seed/ekpang/600/400",
+      "imageHint": "cocoyam pottage"
     },
     {
-      "id": "chapman",
-      "description": "A refreshing glass of Chapman drink.",
-      "imageUrl": "https://images.unsplash.com/photo-1681579289899-188bd52d51f4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxjb2NrdGFpbCUyMGRyaW5rfGVufDB8fHx8MTc2NDU5OTMzOXww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "cocktail drink"
+      "id": "peppersoup",
+      "description": "A hot and spicy Nigerian peppersoup.",
+      "imageUrl": "https://images.unsplash.com/photo-1632167842852-ebc7e2db42f3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxzcGljeSUyMHNvdXB8ZW58MHx8fHwxNzY0NjAxMjU2fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "spicy soup"
     },
     {
       "id": "suya",
@@ -37,16 +43,34 @@
       "imageHint": "grilled skewers"
     },
     {
-      "id": "egusi-soup",
-      "description": "A bowl of Egusi soup with pounded yam.",
-      "imageUrl": "https://images.unsplash.com/photo-1618133879005-2943eb640e27?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxtZWxvbiUyMHNvdXB8ZW58MHx8fHwxNzY0NjAwMzQxfDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "melon soup"
+      "id": "atama-soup",
+      "description": "A bowl of Atama soup, a palm nut-based delicacy.",
+      "imageUrl": "https://images.unsplash.com/photo-1737582514072-dce17f8cb192?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8cGFsbSUyMHNvdXB8ZW58MHx8fHwxNzY0NjAxMjU2fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "palm soup"
     },
     {
-      "id": "afang-soup",
-      "description": "A traditional Calabar Afang soup.",
-      "imageUrl": "https://images.unsplash.com/photo-1665594051407-7385d281ad76?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxhZmFuZyUyMHNvdXB8ZW58MHx8fHwxNzY0NjAwMzQxfDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "afang soup"
+      "id": "fisherman-soup",
+      "description": "A hearty bowl of Fisherman soup, filled with seafood.",
+      "imageUrl": "https://images.unsplash.com/photo-1696071506684-98cc784a89df?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxzZWFmb29kJTIwc291cHxlbnwwfHx8fDE3NjQ2MDEyNTZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "seafood soup"
+    },
+    {
+      "id": "pounded-yam",
+      "description": "A smooth and fluffy mound of pounded yam.",
+      "imageUrl": "https://images.unsplash.com/photo-1568567663699-3eb161fb40be?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHx5YW0lMjBkb3VnaHxlbnwwfHx8fDE3NjQ2MDEyNTZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "yam dough"
+    },
+    {
+      "id": "eba",
+      "description": "A portion of Eba (Garri), ready to be eaten with soup.",
+      "imageUrl": "https://images.unsplash.com/photo-1748382018148-73655d628b6d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxnYXJyaSUyMHN3YWxsb3d8ZW58MHx8fHwxNzY0NjAxMjU2fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "garri swallow"
+    },
+    {
+      "id": "chapman",
+      "description": "A refreshing glass of Chapman drink.",
+      "imageUrl": "https://images.unsplash.com/photo-1681579289899-188bd52d51f4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxjb2NrdGFpbCUyMGRyaW5rfGVufDB8fHx8MTc2NDU5OTMzOXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "cocktail drink"
     }
   ]
 }
