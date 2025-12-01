@@ -19,7 +19,8 @@ export default function Home() {
   const filteredMeals = allMeals.filter((meal) => {
     const categoryMatch =
       filters.category === 'all' || meal.category === filters.category;
-    const priceMatch = meal.price <= filters.maxPrice;
+    // Price match is always true now
+    const priceMatch = true;
     const searchMatch =
       filters.search === '' ||
       meal.name.toLowerCase().includes(filters.search.toLowerCase()) ||
