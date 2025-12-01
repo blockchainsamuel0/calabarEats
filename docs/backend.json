@@ -1,0 +1,354 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Represents a user of the application, who can be a customer, chef, or admin.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The user's full name."
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "The user's email address."
+        },
+        "phone": {
+          "type": "string",
+          "description": "The user's phone number."
+        },
+        "role": {
+          "type": "string",
+          "description": "The role of the user.",
+          "enum": [
+            "customer",
+            "chef",
+            "admin"
+          ]
+        },
+        "chefProfileId": {
+          "type": "string",
+          "description": "The ID of the associated chef profile, if the user is a chef."
+        },
+        "favourites": {
+          "type": "array",
+          "description": "An array of dish IDs that the user has favourited.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The timestamp when the user account was created."
+        }
+      },
+      "required": [
+        "name",
+        "email",
+        "role",
+        "createdAt"
+      ]
+    },
+    "Chef": {
+      "title": "Chef",
+      "description": "Represents a chef's profile, containing their professional details.",
+      "type": "object",
+      "properties": {
+        "ownerUserId": {
+          "type": "string",
+          "description": "The user ID of the chef who owns this profile."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the chef or their establishment."
+        },
+        "addressText": {
+          "type": "string",
+          "description": "The physical address of the chef's kitchen."
+        },
+        "location": {
+          "type": "object",
+          "properties": {
+            "lat": {
+              "type": "number"
+            },
+            "lng": {
+              "type": "number"
+            }
+          },
+          "description": "The geographical location of the chef's kitchen."
+        },
+        "hygieneVerified": {
+          "type": "boolean",
+          "description": "Whether the chef's hygiene standards have been verified."
+        },
+        "verifiedByAdmin": {
+          "type": "boolean",
+          "description": "Whether the chef has been verified by an administrator."
+        },
+        "workingHours": {
+          "type": "object",
+          "description": "The chef's working hours."
+        },
+        "rating": {
+          "type": "number",
+          "description": "The average rating of the chef."
+        },
+        "photoUrl": {
+          "type": "string",
+          "description": "URL to the chef's profile picture."
+        }
+      },
+      "required": [
+        "ownerUserId",
+        "name",
+        "addressText",
+        "location"
+      ]
+    },
+    "Dish": {
+      "title": "Dish",
+      "description": "Represents a single dish that can be offered by chefs.",
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "The name of the dish."
+        },
+        "description": {
+          "type": "string",
+          "description": "A detailed description of the dish."
+        },
+        "category": {
+          "type": "string",
+          "description": "The category the dish belongs to (e.g., Soup, Special)."
+        },
+        "ingredients": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "A list of ingredients in the dish."
+        },
+        "photos": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "A list of URLs to photos of the dish."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The timestamp when the dish was created."
+        }
+      },
+      "required": [
+        "title",
+        "description",
+        "category"
+      ]
+    },
+    "Price": {
+      "title": "Price",
+      "description": "Defines the price for a specific dish offered by a specific chef.",
+      "type": "object",
+      "properties": {
+        "dishId": {
+          "type": "string",
+          "description": "The ID of the dish this price applies to."
+        },
+        "chefId": {
+          "type": "string",
+          "description": "The ID of the chef setting this price."
+        },
+        "price": {
+          "type": "number",
+          "description": "The cost of the dish."
+        },
+        "portionSize": {
+          "type": "string",
+          "enum": [
+            "small",
+            "regular",
+            "xl",
+            "family"
+          ],
+          "description": "The size of the portion."
+        },
+        "availableDays": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Days of the week this dish is available at this price."
+        },
+        "notes": {
+          "type": "string",
+          "description": "Additional notes from the chef about this price."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The last time this price was updated."
+        }
+      },
+      "required": [
+        "dishId",
+        "chefId",
+        "price",
+        "portionSize"
+      ]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "Represents a customer's order.",
+      "type": "object",
+      "properties": {
+        "customerId": {
+          "type": "string",
+          "description": "The user ID of the customer who placed the order."
+        },
+        "chefId": {
+          "type": "string",
+          "description": "The chef ID who will fulfill the order."
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "dishId": {
+                "type": "string"
+              },
+              "priceId": {
+                "type": "string"
+              },
+              "quantity": {
+                "type": "number"
+              },
+              "notes": {
+                "type": "string"
+              }
+            }
+          },
+          "description": "The items included in the order."
+        },
+        "subtotal": {
+          "type": "number",
+          "description": "The total cost of the items before delivery and fees."
+        },
+        "deliveryAddress": {
+          "type": "object",
+          "description": "The address for the delivery."
+        },
+        "phone": {
+          "type": "string",
+          "description": "The customer's contact phone number for the order."
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "accepted",
+            "ready",
+            "completed",
+            "cancelled"
+          ],
+          "description": "The current status of the order."
+        },
+        "payment": {
+          "type": "object",
+          "properties": {
+            "method": {
+              "type": "string"
+            },
+            "status": {
+              "type": "string"
+            },
+            "reference": {
+              "type": "string"
+            }
+          },
+          "description": "Payment details for the order."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The timestamp when the order was placed."
+        }
+      },
+      "required": [
+        "customerId",
+        "chefId",
+        "items",
+        "subtotal",
+        "deliveryAddress",
+        "status",
+        "createdAt"
+      ]
+    },
+    "Wallet": {
+      "title": "Wallet",
+      "description": "Represents a chef's wallet for managing earnings.",
+      "type": "object",
+      "properties": {
+        "balance": {
+          "type": "number",
+          "description": "The current available balance."
+        },
+        "pending": {
+          "type": "number",
+          "description": "The amount pending clearance."
+        }
+      },
+      "required": [
+        "balance",
+        "pending"
+      ]
+    },
+    "Transaction": {
+      "title": "Transaction",
+      "description": "Records a financial transaction related to an order.",
+      "type": "object",
+      "properties": {
+        "orderId": {
+          "type": "string",
+          "description": "The ID of the order associated with this transaction."
+        },
+        "amount": {
+          "type": "number",
+          "description": "The total amount paid by the customer."
+        },
+        "fee": {
+          "type": "number",
+          "description": "The platform fee deducted from the transaction."
+        },
+        "chefReceives": {
+          "type": "number",
+          "description": "The net amount credited to the chef."
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The timestamp of the transaction."
+        }
+      },
+      "required": [
+        "orderId",
+        "amount",
+        "fee",
+        "chefReceives",
+        "timestamp"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "email-password",
+      "phone"
+    ]
+  }
+}
