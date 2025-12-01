@@ -1,14 +1,14 @@
 'use client';
 
 import { createContext, useContext, useState, ReactNode } from 'react';
-import type { Meal, CartItem } from '@/lib/types';
+import type { Meal, CartItem, Addon } from '@/lib/types';
 import { useToast } from './use-toast';
 
 interface CartContextType {
   cart: CartItem[];
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
-  addToCart: (meal: Meal, quantity?: number) => void;
+  addToCart: (meal: Meal, quantity: number, selectedAddons: Addon[]) => void;
   removeFromCart: (mealId: string) => void;
   updateQuantity: (mealId: string, quantity: number) => void;
   clearCart: () => void;
@@ -23,17 +23,38 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [isOpen, setIsOpen] = useState(false);
   const { toast } = useToast();
 
-  const addToCart = (meal: Meal, quantity: number = 1) => {
+  const getCartItemId = (mealId: string, addons: Addon[] = []) => {
+    if (!addons || addons.length === 0) {
+      return mealId;
+    }
+    const addonIds = addons.map(a => a.id).sort().join('-');
+    return `${mealId}-${addonIds}`;
+  };
+
+  const addToCart = (meal: Meal, quantity: number = 1, selectedAddons: Addon[] = []) => {
+    const cartItemId = getCartItemId(meal.id, selectedAddons);
+    
     setCart((prevCart) => {
-      const existingItem = prevCart.find((item) => item.id === meal.id);
+      const existingItem = prevCart.find((item) => item.id === cartItemId);
       if (existingItem) {
         return prevCart.map((item) =>
-          item.id === meal.id
+          item.id === cartItemId
             ? { ...item, quantity: item.quantity + quantity }
             : item
         );
       }
-      return [...prevCart, { ...meal, quantity }];
+      const addonPrice = selectedAddons.reduce((acc, addon) => acc + addon.price, 0);
+      return [
+        ...prevCart,
+        {
+          ...meal,
+          id: cartItemId, // Use the generated ID for the cart item
+          originalId: meal.id, // Keep track of the original meal ID
+          price: meal.price + addonPrice, // Adjust price based on addons
+          quantity,
+          selectedAddons,
+        },
+      ];
     });
     toast({
       title: 'Added to cart',
@@ -42,18 +63,18 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     setIsOpen(true);
   };
 
-  const removeFromCart = (mealId: string) => {
-    setCart((prevCart) => prevCart.filter((item) => item.id !== mealId));
+  const removeFromCart = (cartItemId: string) => {
+    setCart((prevCart) => prevCart.filter((item) => item.id !== cartItemId));
   };
 
-  const updateQuantity = (mealId: string, quantity: number) => {
+  const updateQuantity = (cartItemId: string, quantity: number) => {
     if (quantity <= 0) {
-      removeFromCart(mealId);
+      removeFromCart(cartItemId);
       return;
     }
     setCart((prevCart) =>
       prevCart.map((item) =>
-        item.id === mealId ? { ...item, quantity } : item
+        item.id === cartItemId ? { ...item, quantity } : item
       )
     );
   };

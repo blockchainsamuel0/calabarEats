@@ -18,6 +18,11 @@ export const allMeals: Meal[] = [
     category: 'Soups',
     vendor: 'The Calabar Kitchen',
     imageId: 'afang-soup',
+    addons: [
+      { id: 'extra-meat', name: 'Extra Beef', price: 500 },
+      { id: 'extra-fish', name: 'Extra Fish', price: 700 },
+      { id: 'extra-kpomo', name: 'Extra Kpomo', price: 300 },
+    ],
   },
   {
     id: '2',
@@ -27,6 +32,10 @@ export const allMeals: Meal[] = [
     category: 'Soups',
     vendor: 'Mama Cass',
     imageId: 'edikaikong-soup',
+    addons: [
+      { id: 'extra-meat', name: 'Extra Beef', price: 500 },
+      { id: 'extra-fish', name: 'Extra Stockfish', price: 800 },
+    ],
   },
   {
     id: '3',
@@ -36,6 +45,9 @@ export const allMeals: Meal[] = [
     category: 'Soups',
     vendor: 'City Chefs',
     imageId: 'afia-efere',
+    addons: [
+      { id: 'extra-goat-meat', name: 'Extra Goat Meat', price: 1000 },
+    ],
   },
   {
     id: '4',
@@ -72,6 +84,10 @@ export const allMeals: Meal[] = [
     category: 'Soups',
     vendor: 'City Chefs',
     imageId: 'atama-soup',
+    addons: [
+      { id: 'extra-meat', name: 'Extra Beef', price: 500 },
+      { id: 'extra-fish', name: 'Extra Dry Fish', price: 700 },
+    ],
   },
   {
     id: '8',
@@ -81,6 +97,10 @@ export const allMeals: Meal[] = [
     category: 'Soups',
     vendor: 'The Calabar Kitchen',
     imageId: 'fisherman-soup',
+    addons: [
+      { id: 'extra-prawns', name: 'Extra Prawns', price: 1200 },
+      { id: 'extra-crab', name: 'Extra Crab', price: 1500 },
+    ],
   },
   {
     id: '9',
@@ -108,6 +128,10 @@ export const allMeals: Meal[] = [
     category: 'Specials',
     vendor: 'Mama Cass',
     imageId: 'jollof-rice',
+    addons: [
+      { id: 'extra-chicken', name: 'Extra Chicken', price: 1000 },
+      { id: 'plantain', name: 'Fried Plantain', price: 500 },
+    ],
   },
   {
     id: '12',

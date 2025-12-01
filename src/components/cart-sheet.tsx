@@ -59,6 +59,13 @@ export default function CartSheet() {
                         </div>
                         <div className="flex-1 space-y-1">
                           <h3 className="font-medium">{item.name}</h3>
+                          {item.selectedAddons && item.selectedAddons.length > 0 && (
+                            <div className="text-sm text-muted-foreground">
+                              {item.selectedAddons.map(addon => (
+                                <div key={addon.id}>+ {addon.name} ({formatPrice(addon.price)})</div>
+                              ))}
+                            </div>
+                          )}
                           <p className="text-sm text-muted-foreground">
                             {formatPrice(item.price)}
                           </p>
