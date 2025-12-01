@@ -1,3 +1,52 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "jollof-rice",
+      "description": "A delicious plate of Jollof rice with chicken.",
+      "imageUrl": "https://images.unsplash.com/photo-1666190092689-e3968aa0c32c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxqb2xsb2YlMjByaWNlfGVufDB8fHx8MTc2NDU1MjIwOXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "jollof rice"
+    },
+    {
+      "id": "efo-riro",
+      "description": "A bowl of Efo Riro soup served with fufu.",
+      "imageUrl": "https://images.unsplash.com/photo-1603105037880-880cd4edfb0d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHx2ZWdldGFibGUlMjBzb3VwfGVufDB8fHx8MTc2NDU2NzM4NHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "vegetable soup"
+    },
+    {
+      "id": "fried-plantain",
+      "description": "A side of sweet, fried plantains.",
+      "imageUrl": "https://images.unsplash.com/photo-1662722794692-2f955a0d2dd8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxmcmllZCUyMHBsYW50YWlufGVufDB8fHx8MTc2NDYwMDM0MXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "fried plantain"
+    },
+    {
+      "id": "meat-pie",
+      "description": "A savory Nigerian meat pie.",
+      "imageUrl": "https://images.unsplash.com/photo-1606658635625-cae1c819548c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8bWVhdCUyMHBpZXxlbnwwfHx8fDE3NjQ2MDAzNDF8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "meat pie"
+    },
+    {
+      "id": "chapman",
+      "description": "A refreshing glass of Chapman drink.",
+      "imageUrl": "https://images.unsplash.com/photo-1681579289899-188bd52d51f4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxjb2NrdGFpbCUyMGRyaW5rfGVufDB8fHx8MTc2NDU5OTMzOXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "cocktail drink"
+    },
+    {
+      "id": "suya",
+      "description": "Spicy grilled beef skewers (Suya).",
+      "imageUrl": "https://images.unsplash.com/photo-1687365762572-b418d588c225?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxncmlsbGVkJTIwc2tld2Vyc3xlbnwwfHx8fDE3NjQ2MDAzNDF8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "grilled skewers"
+    },
+    {
+      "id": "egusi-soup",
+      "description": "A bowl of Egusi soup with pounded yam.",
+      "imageUrl": "https://images.unsplash.com/photo-1618133879005-2943eb640e27?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxtZWxvbiUyMHNvdXB8ZW58MHx8fHwxNzY0NjAwMzQxfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "melon soup"
+    },
+    {
+      "id": "afang-soup",
+      "description": "A traditional Calabar Afang soup.",
+      "imageUrl": "https://images.unsplash.com/photo-1665594051407-7385d281ad76?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxhZmFuZyUyMHNvdXB8ZW58MHx8fHwxNzY0NjAwMzQxfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "afang soup"
+    }
+  ]
 }
