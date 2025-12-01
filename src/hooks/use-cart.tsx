@@ -48,9 +48,9 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         ...prevCart,
         {
           ...meal,
-          id: cartItemId, // Use the generated ID for the cart item
-          originalId: meal.id, // Keep track of the original meal ID
-          price: meal.price + addonPrice, // Adjust price based on addons
+          id: cartItemId, 
+          originalId: meal.id, 
+          price: meal.price + addonPrice, 
           quantity,
           selectedAddons,
         },
@@ -58,7 +58,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     });
     toast({
       title: 'Added to cart',
-      description: `${meal.name} has been added to your cart.`,
+      description: `${meal.name} is now in your cart.`,
     });
     setIsOpen(true);
   };

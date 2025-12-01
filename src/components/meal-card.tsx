@@ -7,7 +7,7 @@ import { useCart } from '@/hooks/use-cart';
 import { getPlaceholderImage } from '@/lib/placeholder-images';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { ChefHat, ShoppingCart } from 'lucide-react';
+import { ChefHat, ShoppingCart, PlusCircle } from 'lucide-react';
 import AddonDialog from './addon-dialog';
 
 interface MealCardProps {
@@ -23,6 +23,7 @@ export default function MealCard({ meal }: MealCardProps) {
     return new Intl.NumberFormat('en-NG', {
       style: 'currency',
       currency: 'NGN',
+      minimumFractionDigits: 0,
     }).format(price);
   };
   
@@ -34,7 +35,7 @@ export default function MealCard({ meal }: MealCardProps) {
 
   return (
     <>
-      <Card className="flex flex-col overflow-hidden h-full transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+      <Card className="flex flex-col overflow-hidden h-full transition-shadow duration-300 hover:shadow-lg">
         {image && (
           <div className="relative h-48 w-full">
             <Image
@@ -48,20 +49,20 @@ export default function MealCard({ meal }: MealCardProps) {
           </div>
         )}
         <CardHeader>
-          <CardTitle>{meal.name}</CardTitle>
-          <CardDescription className="flex items-center pt-1">
-              <ChefHat className="w-4 h-4 mr-2 text-muted-foreground"/>
+          <CardTitle className="text-lg">{meal.name}</CardTitle>
+          <CardDescription className="flex items-center pt-1 text-sm">
+              <ChefHat className="w-4 h-4 mr-1.5 text-muted-foreground"/>
               {meal.vendor}
           </CardDescription>
         </CardHeader>
         <CardContent className="flex-grow">
-          <p className="text-sm text-muted-foreground">{meal.description}</p>
+          <p className="text-sm text-muted-foreground line-clamp-2">{meal.description}</p>
         </CardContent>
-        <CardFooter className="flex justify-between items-center">
-          <p className="text-xl font-bold text-accent">{formatPrice(meal.price)}</p>
-          <Button onClick={() => (hasAddons ? setIsDialogOpen(true) : handleAddToCart())}>
-            <ShoppingCart className="mr-2 h-4 w-4" />
-            Add to Cart
+        <CardFooter className="flex justify-between items-center bg-muted/50 p-4">
+          <p className="text-lg font-semibold text-foreground">{formatPrice(meal.price)}</p>
+          <Button onClick={() => (hasAddons ? setIsDialogOpen(true) : handleAddToCart())} size="sm">
+            {hasAddons ? <PlusCircle className="mr-2 h-4 w-4" /> : <ShoppingCart className="mr-2 h-4 w-4" />}
+            {hasAddons ? 'Customize' : 'Add to Cart'}
           </Button>
         </CardFooter>
       </Card>

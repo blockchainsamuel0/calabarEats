@@ -19,26 +19,26 @@ export default function Home() {
   const filteredMeals = allMeals.filter((meal) => {
     const categoryMatch =
       filters.category === 'all' || meal.category === filters.category;
-    // Price match is always true now
-    const priceMatch = true;
     const searchMatch =
       filters.search === '' ||
       meal.name.toLowerCase().includes(filters.search.toLowerCase()) ||
       meal.vendor.toLowerCase().includes(filters.search.toLowerCase());
-    return categoryMatch && priceMatch && searchMatch;
+    return categoryMatch && searchMatch;
   });
 
   return (
-    <div className="flex min-h-screen w-full flex-col">
+    <div className="flex min-h-screen w-full flex-col bg-muted/40">
       <AppHeader />
       <main className="flex-1 container mx-auto py-8 px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
-            <UtensilsCrossed className="w-16 h-16 mx-auto mb-4 text-primary" />
-          <h1 className="text-4xl md:text-5xl font-bold font-headline text-accent">
-            Discover Delicious Meals in Calabar
+          <div className="inline-block p-4 bg-primary/10 rounded-full">
+            <UtensilsCrossed className="w-10 h-10 text-primary" />
+          </div>
+          <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-foreground mt-4">
+            Delicious Meals, Delivered.
           </h1>
-          <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
-            Your one-stop shop for the best local cuisine. Filter by category, price, and more to find your next favorite meal.
+          <p className="mt-3 text-lg text-muted-foreground max-w-2xl mx-auto">
+            Experience the rich flavors of Calabar. Your next favorite meal is just a few clicks away.
           </p>
         </div>
         <MealFilters

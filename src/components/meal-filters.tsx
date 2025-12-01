@@ -27,14 +27,16 @@ export default function MealFilters({
 }: MealFiltersProps) {
   
   return (
-    <Card className="mb-8 shadow-lg">
-        <CardContent className="p-4 md:p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
+    <Card className="mb-8 border-none shadow-sm">
+        <CardContent className="p-4 md:p-6 bg-card rounded-lg">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
                 <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Label htmlFor="search-input">Search</Label>
+                    <Search className="absolute left-3 bottom-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
+                        id="search-input"
                         placeholder="Search meals or vendors..."
-                        className="pl-10"
+                        className="pl-10 mt-1"
                         value={filters.search}
                         onChange={(e) => setFilters({ ...filters, search: e.target.value })}
                     />
@@ -45,8 +47,8 @@ export default function MealFilters({
                         value={filters.category}
                         onValueChange={(value) => setFilters({ ...filters, category: value })}
                     >
-                        <SelectTrigger id="category-filter" className="w-full">
-                        <SelectValue placeholder="Select a category" />
+                        <SelectTrigger id="category-filter" className="w-full mt-1">
+                          <SelectValue placeholder="Select a category" />
                         </SelectTrigger>
                         <SelectContent>
                         {categories.map((category) => (
