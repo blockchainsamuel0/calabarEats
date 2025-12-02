@@ -8,7 +8,7 @@ import { useCart } from '@/hooks/use-cart';
 import { getPlaceholderImage } from '@/lib/placeholder-images';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { ChefHat, ShoppingCart, PlusCircle } from 'lucide-react';
+import { ChefHat, ShoppingCart } from 'lucide-react';
 import AddonDialog from './addon-dialog';
 import MealDetailDialog from './meal-detail-dialog';
 
@@ -35,6 +35,14 @@ export default function MealCard({ meal }: MealCardProps) {
   };
 
   const hasAddons = meal.addons && meal.addons.length > 0;
+  
+  const handlePrimaryAction = () => {
+    if (hasAddons) {
+      setIsAddonDialogOpen(true);
+    } else {
+      handleAddToCart();
+    }
+  };
 
   return (
     <>
@@ -68,9 +76,9 @@ export default function MealCard({ meal }: MealCardProps) {
         </div>
         <CardFooter className="flex justify-between items-center bg-muted/50 p-4 mt-auto">
           <p className="text-lg font-semibold text-foreground">{formatPrice(meal.price)}</p>
-          <Button onClick={() => (hasAddons ? setIsAddonDialogOpen(true) : handleAddToCart())} size="sm">
-            {hasAddons ? <PlusCircle className="mr-2 h-4 w-4" /> : <ShoppingCart className="mr-2 h-4 w-4" />}
-            {hasAddons ? 'Add On' : 'Add to Cart'}
+          <Button onClick={handlePrimaryAction} size="sm">
+            <ShoppingCart className="mr-2 h-4 w-4" />
+            Add to Cart
           </Button>
         </CardFooter>
       </Card>
