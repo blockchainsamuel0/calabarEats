@@ -1,5 +1,7 @@
+
 'use client';
 
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -23,6 +25,8 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { createOrder } from '@/ai/orders';
+import { Loader2 } from 'lucide-react';
 
 const orderSchema = z.object({
   name: z.string().min(2, 'Name is required'),
@@ -38,8 +42,9 @@ interface OrderFormProps {
 }
 
 export default function OrderForm({ isOpen, setIsOpen }: OrderFormProps) {
-  const { clearCart, totalPrice } = useCart();
+  const { cart, clearCart, totalPrice } = useCart();
   const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<OrderFormValues>({
     resolver: zodResolver(orderSchema),
@@ -50,15 +55,41 @@ export default function OrderForm({ isOpen, setIsOpen }: OrderFormProps) {
     },
   });
 
-  const onSubmit = (data: OrderFormValues) => {
-    console.log('Order submitted:', data);
-    clearCart();
-    setIsOpen(false);
-    toast({
-      title: 'Order Placed!',
-      description: 'Your delicious meal is on its way. Thank you for your order!',
-    });
-    form.reset();
+  const onSubmit = async (data: OrderFormValues) => {
+    setIsSubmitting(true);
+    try {
+        const orderInput = {
+            items: cart.map(item => ({
+                originalId: item.originalId,
+                price: item.price,
+                quantity: item.quantity,
+                vendor: item.vendor,
+            })),
+            deliveryAddress: data.address,
+            phone: data.phone
+        };
+
+      const result = await createOrder(orderInput);
+
+      console.log('Order created:', result);
+      clearCart();
+      setIsOpen(false);
+      toast({
+        title: 'Order Placed!',
+        description: `Your order #${result.orderId.slice(0,6)} is on its way. Thank you!`,
+      });
+      form.reset();
+
+    } catch (error: any) {
+        console.error('Failed to create order:', error);
+        toast({
+            variant: "destructive",
+            title: "Order Failed",
+            description: error.message || "There was a problem placing your order. Please try again.",
+        });
+    } finally {
+        setIsSubmitting(false);
+    }
   };
 
   const formatPrice = (price: number) => {
@@ -78,7 +109,7 @@ export default function OrderForm({ isOpen, setIsOpen }: OrderFormProps) {
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
             <FormField
               control={form.control}
               name="name"
@@ -119,8 +150,9 @@ export default function OrderForm({ isOpen, setIsOpen }: OrderFormProps) {
               )}
             />
             <DialogFooter>
-              <Button type="submit" className="w-full">
-                Place Order - {formatPrice(totalPrice)}
+              <Button type="submit" className="w-full" disabled={isSubmitting}>
+                {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                {isSubmitting ? 'Placing Order...' : `Place Order - ${formatPrice(totalPrice)}`}
               </Button>
             </DialogFooter>
           </form>

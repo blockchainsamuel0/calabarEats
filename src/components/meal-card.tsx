@@ -1,3 +1,4 @@
+
 'use client';
 
 import Image from 'next/image';
@@ -35,14 +36,14 @@ export default function MealCard({ meal }: MealCardProps) {
 
   return (
     <>
-      <Card className="flex flex-col overflow-hidden h-full transition-shadow duration-300 hover:shadow-lg">
+      <Card className="flex flex-col overflow-hidden h-full transition-shadow duration-300 hover:shadow-lg group">
         {image && (
-          <div className="relative h-48 w-full">
+          <div className="relative h-48 w-full overflow-hidden">
             <Image
               src={image.imageUrl}
               alt={meal.name}
               fill
-              className="object-cover"
+              className="object-cover transition-transform duration-300 group-hover:scale-105"
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               data-ai-hint={image.imageHint}
             />

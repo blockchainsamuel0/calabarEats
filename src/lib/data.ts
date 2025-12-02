@@ -1,10 +1,11 @@
+
 import type { Meal } from './types';
 
 export const mealCategories = [
   'All',
   'Soups',
-  'Swallow',
   'Specials',
+  'Swallow',
   'Snacks',
   'Drinks',
 ];
@@ -13,7 +14,7 @@ export const allMeals: Meal[] = [
   {
     id: '1',
     name: 'Afang Soup & Swallow',
-    description: 'A Calabar delicacy made with afang leaves, waterleaf, and assorted meat/fish. Served with your choice of swallow.',
+    description: 'A Calabar delicacy with afang leaves, waterleaf, and assorted meat/fish. Served with your choice of swallow.',
     price: 4500,
     category: 'Soups',
     vendor: 'The Calabar Kitchen',
@@ -34,7 +35,7 @@ export const allMeals: Meal[] = [
     imageId: 'edikaikong-soup',
     addons: [
       { id: 'extra-meat', name: 'Extra Beef', price: 500 },
-      { id: 'extra-fish', name: 'Extra Stockfish', price: 800 },
+      { id: 'extra-stockfish', name: 'Extra Stockfish', price: 800 },
     ],
   },
   {
@@ -141,5 +142,31 @@ export const allMeals: Meal[] = [
     category: 'Drinks',
     vendor: 'The Calabar Kitchen',
     imageId: 'chapman',
+  },
+   {
+    id: '13',
+    name: 'Otong Soup',
+    description: 'A delicious vegetable soup made with a blend of ugwu and uziza leaves.',
+    price: 4300,
+    category: 'Soups',
+    vendor: 'City Chefs',
+    imageId: 'otong-soup',
+    addons: [
+      { id: 'extra-meat', name: 'Extra Beef', price: 500 },
+      { id: 'extra-fish', name: 'Extra Stockfish', price: 800 },
+    ],
+  },
+  {
+    id: '14',
+    name: 'Abak Atama (Palm Nut Soup)',
+    description: 'A flavorful soup made from palm fruit concentrate and atama leaves.',
+    price: 4700,
+    category: 'Soups',
+    vendor: 'The Calabar Kitchen',
+    imageId: 'abak-atama',
+     addons: [
+      { id: 'extra-meat', name: 'Extra Beef', price: 500 },
+      { id: 'extra-fish', name: 'Extra Dry Fish', price: 700 },
+    ],
   },
 ];

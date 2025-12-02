@@ -71,6 +71,18 @@
       "description": "A refreshing glass of Chapman drink.",
       "imageUrl": "https://images.unsplash.com/photo-1681579289899-188bd52d51f4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxjb2NrdGFpbCUyMGRyaW5rfGVufDB8fHx8MTc2NDU5OTMzOXww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "cocktail drink"
+    },
+    {
+      "id": "otong-soup",
+      "description": "A delicious vegetable soup.",
+      "imageUrl": "https://images.unsplash.com/photo-1612108438004-257c47560118?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHx2ZWdldGFibGUlMjBzb3VwfGVufDB8fHx8MTc2NDU2NzM4NHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "vegetable soup"
+    },
+    {
+      "id": "abak-atama",
+      "description": "A flavorful soup made from palm fruit concentrate and atama leaves.",
+      "imageUrl": "https://images.unsplash.com/photo-1741026079032-7cb660e44bad?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxwYWxtJTIwc291cHxlbnwwfHx8fDE3NjQ2MDEyNTZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "palm soup"
     }
   ]
 }

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -45,8 +46,8 @@ export default function CartSheet() {
                   {cart.map((item) => {
                     const image = getPlaceholderImage(item.imageId);
                     return (
-                      <div key={item.id} className="flex items-center space-x-4">
-                        <div className="relative h-20 w-20 overflow-hidden rounded-md">
+                      <div key={item.id} className="flex items-start space-x-4">
+                        <div className="relative h-20 w-20 overflow-hidden rounded-md flex-shrink-0">
                           {image && (
                             <Image
                               src={image.imageUrl}
@@ -57,19 +58,16 @@ export default function CartSheet() {
                             />
                           )}
                         </div>
-                        <div className="flex-1 space-y-1">
-                          <h3 className="font-medium">{item.name}</h3>
+                        <div className="flex-1 space-y-1.5">
+                          <h3 className="font-medium leading-tight">{item.name}</h3>
                           {item.selectedAddons && item.selectedAddons.length > 0 && (
-                            <div className="text-sm text-muted-foreground">
+                            <div className="text-xs text-muted-foreground">
                               {item.selectedAddons.map(addon => (
-                                <div key={addon.id}>+ {addon.name} ({formatPrice(addon.price)})</div>
+                                <div key={addon.id}>+ {addon.name}</div>
                               ))}
                             </div>
                           )}
-                          <p className="text-sm text-muted-foreground">
-                            {formatPrice(item.price)}
-                          </p>
-                          <div className="flex items-center space-x-2">
+                           <div className="flex items-center space-x-2">
                             <Button
                               variant="outline"
                               size="icon"
@@ -78,7 +76,7 @@ export default function CartSheet() {
                             >
                               <Minus className="h-4 w-4" />
                             </Button>
-                            <span className="w-6 text-center">{item.quantity}</span>
+                            <span className="w-6 text-center font-medium">{item.quantity}</span>
                             <Button
                               variant="outline"
                               size="icon"
@@ -122,7 +120,7 @@ export default function CartSheet() {
               </SheetFooter>
             </>
           ) : (
-            <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
+            <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center p-8">
                 <div className="rounded-full border-2 border-dashed border-muted-foreground/50 bg-secondary p-8">
                     <ShoppingCart className="h-16 w-16 text-muted-foreground" />
                 </div>
