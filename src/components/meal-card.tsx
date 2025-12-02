@@ -37,7 +37,7 @@ export default function MealCard({ meal }: MealCardProps) {
     }).format(price);
   };
   
-  const handleAddToCart = (selectedAddons: Addon[] = []) => {
+  const handleAddToCartWithAddons = (selectedAddons: Addon[] = []) => {
     addToCart(meal, 1, selectedAddons);
   };
   
@@ -45,7 +45,7 @@ export default function MealCard({ meal }: MealCardProps) {
     if (meal.addons && meal.addons.length > 0) {
       setIsAddonDialogOpen(true);
     } else {
-      handleAddToCart();
+      addToCart(meal, 1);
     }
   };
 
@@ -149,7 +149,7 @@ export default function MealCard({ meal }: MealCardProps) {
           isOpen={isAddonDialogOpen}
           setIsOpen={setIsAddonDialogOpen}
           meal={meal}
-          onAddToCart={handleAddToCart}
+          onAddToCart={handleAddToCartWithAddons}
         />
       )}
 
