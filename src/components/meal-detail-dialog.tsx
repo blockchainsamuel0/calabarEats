@@ -1,4 +1,3 @@
-
 'use client';
 
 import Image from 'next/image';
@@ -71,12 +70,6 @@ export default function MealDetailDialog({ isOpen, setIsOpen, meal }: MealDetail
                       </DialogHeader>
                       <div className="space-y-4 mt-4">
                           <p className="text-sm text-muted-foreground">{meal.description}</p>
-                          <div>
-                              <h4 className="font-semibold text-foreground mb-2 text-sm">Ingredients</h4>
-                              <p className="text-xs text-muted-foreground">
-                                  {meal.ingredients?.join(', ') || 'Not specified'}
-                              </p>
-                          </div>
                       </div>
                   </div>
                   <div className="flex justify-between items-center pt-6 mt-auto">
