@@ -51,7 +51,14 @@ export default function MealCard({ meal }: MealCardProps) {
     // This is a simplified version. For meals with addons, this would
     // require more complex logic to know *which* cart item to update.
     // For now, we assume no addons when using the stepper.
-    if (meal.addons && meal.addons.length > 0) {
+    if (quantity > 0 && meal.addons && meal.addons.length > 0) {
+       toast({
+        title: 'Item has add-ons',
+        description: 'Please manage this item from your cart.',
+      });
+      return;
+    }
+     if (quantity === 0 && meal.addons && meal.addons.length > 0) {
       setIsAddonDialogOpen(true);
       return;
     }
@@ -92,7 +99,9 @@ export default function MealCard({ meal }: MealCardProps) {
           </CardContent>
         </div>
         <CardFooter className="flex justify-between items-center bg-muted/50 p-4 mt-auto">
-          <p className="text-lg font-semibold text-foreground">{formatPrice(meal.price)}</p>
+          <div className="flex items-center gap-2">
+            <p className="text-lg font-semibold text-foreground">{formatPrice(meal.price)}</p>
+          </div>
            {quantity === 0 ? (
             <Button onClick={handlePrimaryAction} size="sm">
               <Plus className="h-4 w-4 mr-2" />
