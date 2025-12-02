@@ -350,5 +350,49 @@
       "email-password",
       "phone"
     ]
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": {
+        "$ref": "#/entities/User"
+      },
+      "description": "Stores user profile information."
+    },
+    "/chefs/{chefId}": {
+      "schema": {
+        "$ref": "#/entities/Chef"
+      },
+      "description": "Stores professional profiles for chefs."
+    },
+    "/dishes/{dishId}": {
+      "schema": {
+        "$ref": "#/entities/Dish"
+      },
+      "description": "Stores information about individual dishes available on the platform."
+    },
+    "/prices/{priceId}": {
+      "schema": {
+        "$ref": "#/entities/Price"
+      },
+      "description": "Stores the pricing information for dishes set by specific chefs."
+    },
+    "/orders/{orderId}": {
+      "schema": {
+        "$ref": "#/entities/Order"
+      },
+      "description": "Stores customer order details."
+    },
+    "/wallets/{chefId}": {
+      "schema": {
+        "$ref": "#/entities/Wallet"
+      },
+      "description": "Manages earnings for each chef."
+    },
+    "/transactions/{transactionId}": {
+      "schema": {
+        "$ref": "#/entities/Transaction"
+      },
+      "description": "Records all financial transactions."
+    }
   }
 }
