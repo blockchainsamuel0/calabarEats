@@ -11,13 +11,15 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription }
 import { ChefHat, Minus, Plus } from 'lucide-react';
 import AddonDialog from './addon-dialog';
 import MealDetailDialog from './meal-detail-dialog';
+import { useToast } from '@/hooks/use-toast';
 
 interface MealCardProps {
   meal: Meal;
 }
 
 export default function MealCard({ meal }: MealCardProps) {
-  const { addToCart, updateQuantity, getQuantity, cart } = useCart();
+  const { addToCart, updateQuantity, getQuantity, cart, setIsOpen: setCartOpen } = useCart();
+  const { toast } = useToast();
   const image = getPlaceholderImage(meal.imageId);
   const [isAddonDialogOpen, setIsAddonDialogOpen] = useState(false);
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
@@ -58,7 +60,7 @@ export default function MealCard({ meal }: MealCardProps) {
       });
       return;
     }
-     if (quantity === 0 && meal.addons && meal.addons.length > 0) {
+     if (quantity === 0 && newQuantity > 0 && meal.addons && meal.addons.length > 0) {
       setIsAddonDialogOpen(true);
       return;
     }
@@ -66,6 +68,14 @@ export default function MealCard({ meal }: MealCardProps) {
     // Find the simple cart item (no addons)
     const cartItemId = meal.id;
     updateQuantity(cartItemId, newQuantity);
+  }
+
+  const handleOrderClick = () => {
+    if (quantity === 0) {
+        // If no items are selected, add one to the cart and open it.
+        handleUpdateQuantity(1);
+    }
+    setCartOpen(true);
   }
 
   return (
@@ -99,35 +109,38 @@ export default function MealCard({ meal }: MealCardProps) {
           </CardContent>
         </div>
         <CardFooter className="flex justify-between items-center bg-muted/50 p-4 mt-auto">
+          <p className="text-lg font-semibold text-foreground">{formatPrice(meal.price)}</p>
           <div className="flex items-center gap-2">
-            <p className="text-lg font-semibold text-foreground">{formatPrice(meal.price)}</p>
-          </div>
-           {quantity === 0 ? (
-            <Button onClick={handlePrimaryAction} size="sm">
-              <Plus className="h-4 w-4 mr-2" />
-              Add
+            {quantity === 0 ? (
+                <Button onClick={() => handleUpdateQuantity(1)} size="sm">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add
+                </Button>
+            ) : (
+                <div className="flex items-center space-x-2">
+                <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => handleUpdateQuantity(quantity - 1)}
+                >
+                    <Minus className="h-4 w-4" />
+                </Button>
+                <span className="w-6 text-center font-medium">{quantity}</span>
+                <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => handleUpdateQuantity(quantity + 1)}
+                >
+                    <Plus className="h-4 w-4" />
+                </Button>
+                </div>
+            )}
+             <Button onClick={handleOrderClick} size="sm">
+                Order
             </Button>
-          ) : (
-            <div className="flex items-center space-x-2">
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-8 w-8"
-                onClick={() => handleUpdateQuantity(quantity - 1)}
-              >
-                <Minus className="h-4 w-4" />
-              </Button>
-              <span className="w-6 text-center font-medium">{quantity}</span>
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-8 w-8"
-                onClick={() => handleUpdateQuantity(quantity + 1)}
-              >
-                <Plus className="h-4 w-4" />
-              </Button>
-            </div>
-          )}
+          </div>
         </CardFooter>
       </Card>
       

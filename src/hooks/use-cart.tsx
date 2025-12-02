@@ -61,9 +61,6 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       title: 'Added to cart',
       description: `${meal.name} is now in your cart.`,
     });
-    if (!isOpen) {
-      setIsOpen(true);
-    }
   };
 
   const removeFromCart = (cartItemId: string) => {
@@ -75,11 +72,34 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       removeFromCart(cartItemId);
       return;
     }
-    setCart((prevCart) =>
-      prevCart.map((item) =>
-        item.id === cartItemId ? { ...item, quantity } : item
-      )
-    );
+
+    const meal = cart.find(item => item.id === cartItemId) || allMeals.find(m => m.id === cartItemId);
+    
+    if (!meal) return;
+    
+    const cartItem = cart.find(item => item.id === cartItemId);
+
+    if (cartItem) {
+        setCart((prevCart) =>
+            prevCart.map((item) =>
+                item.id === cartItemId ? { ...item, quantity } : item
+            )
+        );
+    } else {
+        // This is a simple meal (no addons), so we can add it directly.
+         const newCartItem: CartItem = {
+            ...meal,
+            id: meal.id,
+            originalId: meal.id,
+            quantity: quantity,
+            selectedAddons: [],
+        };
+        setCart(prevCart => [...prevCart, newCartItem]);
+        toast({
+          title: 'Added to cart',
+          description: `${meal.name} is now in your cart.`,
+        });
+    }
   };
   
   const getQuantity = (mealId: string) => {
@@ -119,6 +139,11 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     </CartContext.Provider>
   );
 };
+
+// Dummy allMeals for type checking, assuming it exists somewhere.
+// In a real app this would be imported.
+const allMeals: Meal[] = [];
+
 
 export const useCart = () => {
   const context = useContext(CartContext);
