@@ -1,3 +1,4 @@
+
 'use client';
 
 import Image from 'next/image';
@@ -76,7 +77,7 @@ export default function MealDetailDialog({ isOpen, setIsOpen, meal }: MealDetail
                       <p className="text-2xl font-bold text-primary">{formatPrice(meal.price)}</p>
                        <Button onClick={() => (hasAddons ? setIsAddonDialogOpen(true) : handleAddToCart())} size="sm">
                           {hasAddons ? <PlusCircle className="mr-2 h-4 w-4" /> : <ShoppingCart className="mr-2 h-4 w-4" />}
-                          {hasAddons ? 'Customize' : 'Add to Cart'}
+                          {hasAddons ? 'Add On' : 'Add to Cart'}
                         </Button>
                   </div>
               </div>

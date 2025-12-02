@@ -70,7 +70,7 @@ export default function MealCard({ meal }: MealCardProps) {
           <p className="text-lg font-semibold text-foreground">{formatPrice(meal.price)}</p>
           <Button onClick={() => (hasAddons ? setIsAddonDialogOpen(true) : handleAddToCart())} size="sm">
             {hasAddons ? <PlusCircle className="mr-2 h-4 w-4" /> : <ShoppingCart className="mr-2 h-4 w-4" />}
-            {hasAddons ? 'Customize' : 'Add to Cart'}
+            {hasAddons ? 'Add On' : 'Add to Cart'}
           </Button>
         </CardFooter>
       </Card>
