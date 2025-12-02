@@ -12,6 +12,7 @@ interface CartContextType {
   removeFromCart: (mealId: string) => void;
   updateQuantity: (mealId: string, quantity: number) => void;
   clearCart: () => void;
+  getQuantity: (mealId: string) => number;
   totalItems: number;
   totalPrice: number;
 }
@@ -60,7 +61,9 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       title: 'Added to cart',
       description: `${meal.name} is now in your cart.`,
     });
-    setIsOpen(true);
+    if (!isOpen) {
+      setIsOpen(true);
+    }
   };
 
   const removeFromCart = (cartItemId: string) => {
@@ -78,6 +81,14 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       )
     );
   };
+  
+  const getQuantity = (mealId: string) => {
+    // This will get the total quantity for a meal, even with different addons.
+    // We filter for items whose ID starts with the meal's original ID.
+    return cart
+      .filter(item => item.originalId === mealId)
+      .reduce((total, item) => total + item.quantity, 0);
+  }
 
   const clearCart = () => {
     setCart([]);
@@ -99,6 +110,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         removeFromCart,
         updateQuantity,
         clearCart,
+        getQuantity,
         totalItems,
         totalPrice,
       }}

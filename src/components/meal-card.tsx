@@ -2,13 +2,13 @@
 'use client';
 
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { Meal, Addon } from '@/lib/types';
 import { useCart } from '@/hooks/use-cart';
 import { getPlaceholderImage } from '@/lib/placeholder-images';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { ChefHat, Plus, ShoppingCart } from 'lucide-react';
+import { ChefHat, Minus, Plus } from 'lucide-react';
 import AddonDialog from './addon-dialog';
 import MealDetailDialog from './meal-detail-dialog';
 
@@ -17,10 +17,15 @@ interface MealCardProps {
 }
 
 export default function MealCard({ meal }: MealCardProps) {
-  const { addToCart } = useCart();
+  const { addToCart, updateQuantity, getQuantity, cart } = useCart();
   const image = getPlaceholderImage(meal.imageId);
   const [isAddonDialogOpen, setIsAddonDialogOpen] = useState(false);
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
+  const [quantity, setQuantity] = useState(0);
+
+  useEffect(() => {
+    setQuantity(getQuantity(meal.id));
+  }, [cart, getQuantity, meal.id]);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-NG', {
@@ -33,16 +38,28 @@ export default function MealCard({ meal }: MealCardProps) {
   const handleAddToCart = (selectedAddons: Addon[] = []) => {
     addToCart(meal, 1, selectedAddons);
   };
-
-  const hasAddons = meal.addons && meal.addons.length > 0;
   
   const handlePrimaryAction = () => {
-    if (hasAddons) {
+    if (meal.addons && meal.addons.length > 0) {
       setIsAddonDialogOpen(true);
     } else {
       handleAddToCart();
     }
   };
+
+  const handleUpdateQuantity = (newQuantity: number) => {
+    // This is a simplified version. For meals with addons, this would
+    // require more complex logic to know *which* cart item to update.
+    // For now, we assume no addons when using the stepper.
+    if (meal.addons && meal.addons.length > 0) {
+      setIsAddonDialogOpen(true);
+      return;
+    }
+    
+    // Find the simple cart item (no addons)
+    const cartItemId = meal.id;
+    updateQuantity(cartItemId, newQuantity);
+  }
 
   return (
     <>
@@ -76,18 +93,36 @@ export default function MealCard({ meal }: MealCardProps) {
         </div>
         <CardFooter className="flex justify-between items-center bg-muted/50 p-4 mt-auto">
           <p className="text-lg font-semibold text-foreground">{formatPrice(meal.price)}</p>
-          <div className="flex items-center space-x-2">
-            <Button onClick={handlePrimaryAction} variant="outline" size="icon">
-              <Plus className="h-5 w-5" />
-            </Button>
+           {quantity === 0 ? (
             <Button onClick={handlePrimaryAction} size="sm">
-              Order
+              <Plus className="h-4 w-4 mr-2" />
+              Add
             </Button>
-          </div>
+          ) : (
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => handleUpdateQuantity(quantity - 1)}
+              >
+                <Minus className="h-4 w-4" />
+              </Button>
+              <span className="w-6 text-center font-medium">{quantity}</span>
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => handleUpdateQuantity(quantity + 1)}
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
         </CardFooter>
       </Card>
       
-      {hasAddons && (
+      {meal.addons && meal.addons.length > 0 && (
         <AddonDialog
           isOpen={isAddonDialogOpen}
           setIsOpen={setIsAddonDialogOpen}
