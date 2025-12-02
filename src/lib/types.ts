@@ -1,3 +1,4 @@
+
 export interface Addon {
   id: string;
   name: string;
@@ -13,11 +14,13 @@ export interface Meal {
   vendor: string;
   imageId: string;
   addons?: Addon[];
+  ingredients?: string[];
 }
 
 export interface CartItem extends Meal {
   quantity: number;
   selectedAddons?: Addon[];
+  originalId: string;
 }
 
 export interface FilterState {
