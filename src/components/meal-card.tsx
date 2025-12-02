@@ -8,7 +8,7 @@ import { useCart } from '@/hooks/use-cart';
 import { getPlaceholderImage } from '@/lib/placeholder-images';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { ChefHat, ShoppingCart } from 'lucide-react';
+import { ChefHat, Plus, ShoppingCart } from 'lucide-react';
 import AddonDialog from './addon-dialog';
 import MealDetailDialog from './meal-detail-dialog';
 
@@ -76,10 +76,14 @@ export default function MealCard({ meal }: MealCardProps) {
         </div>
         <CardFooter className="flex justify-between items-center bg-muted/50 p-4 mt-auto">
           <p className="text-lg font-semibold text-foreground">{formatPrice(meal.price)}</p>
-          <Button onClick={handlePrimaryAction} size="sm">
-            <ShoppingCart className="mr-2 h-4 w-4" />
-            Add to Cart
-          </Button>
+          <div className="flex items-center space-x-2">
+            <Button onClick={handlePrimaryAction} variant="outline" size="icon">
+              <Plus className="h-5 w-5" />
+            </Button>
+            <Button onClick={handlePrimaryAction} size="sm">
+              Order
+            </Button>
+          </div>
         </CardFooter>
       </Card>
       
