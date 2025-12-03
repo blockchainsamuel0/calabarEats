@@ -31,13 +31,6 @@
           "type": "string",
           "description": "The ID of the associated chef profile, if the user is a chef."
         },
-        "favourites": {
-          "type": "array",
-          "description": "An array of dish IDs that the user has favourited.",
-          "items": {
-            "type": "string"
-          }
-        },
         "createdAt": {
           "type": "string",
           "format": "date-time",
@@ -343,12 +336,45 @@
         "chefReceives",
         "timestamp"
       ]
+    },
+    "CartItem": {
+      "title": "CartItem",
+      "description": "Represents an item in a user's shopping cart.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "The meal ID."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the meal."
+        },
+        "price": {
+          "type": "number",
+          "description": "The price of the meal."
+        },
+        "quantity": {
+          "type": "number",
+          "description": "The quantity of the meal in the cart."
+        },
+        "imageId": {
+          "type": "string",
+          "description": "The ID for the meal's image."
+        },
+        "vendor": {
+          "type": "string",
+          "description": "The vendor of the meal."
+        }
+      },
+      "required": ["id", "name", "price", "quantity", "imageId", "vendor"]
     }
   },
   "auth": {
     "providers": [
       "email-password",
-      "phone"
+      "phone",
+      "google.com"
     ]
   },
   "firestore": {
@@ -357,6 +383,12 @@
         "$ref": "#/entities/User"
       },
       "description": "Stores user profile information."
+    },
+    "/users/{userId}/cart/{cartItemId}": {
+        "schema": {
+            "$ref": "#/entities/CartItem"
+        },
+        "description": "Stores items in a user's shopping cart."
     },
     "/chefs/{chefId}": {
       "schema": {

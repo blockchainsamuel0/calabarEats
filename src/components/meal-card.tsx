@@ -1,33 +1,33 @@
-
 'use client';
 
 import Image from 'next/image';
-import { useState, useEffect } from 'react';
-import type { Meal, Addon } from '@/lib/types';
+import { useState } from 'react';
+import type { Meal } from '@/lib/types';
 import { useCart } from '@/hooks/use-cart';
 import { getPlaceholderImage } from '@/lib/placeholder-images';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { ChefHat, Minus, Plus } from 'lucide-react';
-import AddonDialog from './addon-dialog';
+import { ChefHat, Minus, Plus, Loader2 } from 'lucide-react';
 import MealDetailDialog from './meal-detail-dialog';
 import { useToast } from '@/hooks/use-toast';
+import { placeQuickOrder } from '@/firebase/firestore/orders';
+import { useUser } from '@/firebase';
+import { useRouter } from 'next/navigation';
 
 interface MealCardProps {
   meal: Meal;
 }
 
 export default function MealCard({ meal }: MealCardProps) {
-  const { addToCart, updateQuantity, getQuantity, cart, setIsOpen: setCartOpen } = useCart();
+  const { addItem, updateItemQuantity, getItemQuantity } = useCart();
+  const user = useUser();
+  const router = useRouter();
   const { toast } = useToast();
   const image = getPlaceholderImage(meal.imageId);
-  const [isAddonDialogOpen, setIsAddonDialogOpen] = useState(false);
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
-  const [quantity, setQuantity] = useState(0);
+  const [isOrdering, setIsOrdering] = useState(false);
 
-  useEffect(() => {
-    setQuantity(getQuantity(meal.id));
-  }, [cart, getQuantity, meal.id]);
+  const quantity = getItemQuantity(meal.id);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-NG', {
@@ -36,47 +36,55 @@ export default function MealCard({ meal }: MealCardProps) {
       minimumFractionDigits: 0,
     }).format(price);
   };
-  
-  const handleAddToCartWithAddons = (selectedAddons: Addon[] = []) => {
-    addToCart(meal, 1, selectedAddons);
-  };
-  
-  const handlePrimaryAction = () => {
-    if (meal.addons && meal.addons.length > 0) {
-      setIsAddonDialogOpen(true);
-    } else {
-      addToCart(meal, 1);
-    }
-  };
 
   const handleUpdateQuantity = (newQuantity: number) => {
-    // This is a simplified version. For meals with addons, this would
-    // require more complex logic to know *which* cart item to update.
-    // For now, we assume no addons when using the stepper.
-    if (quantity > 0 && meal.addons && meal.addons.length > 0) {
-       toast({
-        title: 'Item has add-ons',
-        description: 'Please manage this item from your cart.',
+    if (!user) {
+      toast({
+        title: 'Please log in',
+        description: 'You need to be logged in to add items to your cart.',
+        variant: 'destructive',
       });
+      router.push('/login');
       return;
     }
-     if (quantity === 0 && newQuantity > 0 && meal.addons && meal.addons.length > 0) {
-      setIsAddonDialogOpen(true);
-      return;
-    }
-    
-    // Find the simple cart item (no addons)
-    const cartItemId = meal.id;
-    updateQuantity(cartItemId, newQuantity);
-  }
 
-  const handleOrderClick = () => {
-    if (quantity === 0) {
-        // If no items are selected, add one to the cart and open it.
-        handleUpdateQuantity(1);
+    if (quantity === 0 && newQuantity > 0) {
+      addItem(meal);
+    } else {
+      updateItemQuantity(meal.id, newQuantity);
     }
-    setCartOpen(true);
-  }
+  };
+
+  const handleOrder = async () => {
+    if (!user) {
+      toast({
+        title: 'Please log in',
+        description: 'You need to be logged in to place an order.',
+        variant: 'destructive',
+      });
+      router.push('/login');
+      return;
+    }
+    setIsOrdering(true);
+    try {
+      const orderId = await placeQuickOrder(user.uid, meal);
+      toast({
+        title: 'Order Placed!',
+        description: `Your order #${orderId.slice(0, 6)} for ${meal.name} has been placed.`,
+      });
+      // Optionally, redirect to an order confirmation page
+      // router.push(`/orders/${orderId}`);
+    } catch (error) {
+      console.error('Order failed:', error);
+      toast({
+        title: 'Order Failed',
+        description: 'There was a problem placing your order.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsOrdering(false);
+    }
+  };
 
   return (
     <>
@@ -137,21 +145,13 @@ export default function MealCard({ meal }: MealCardProps) {
                 </Button>
                 </div>
             )}
-             <Button onClick={handleOrderClick} size="sm">
+             <Button onClick={handleOrder} size="sm" disabled={isOrdering}>
+                {isOrdering ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                 Order
             </Button>
           </div>
         </CardFooter>
       </Card>
-      
-      {meal.addons && meal.addons.length > 0 && (
-        <AddonDialog
-          isOpen={isAddonDialogOpen}
-          setIsOpen={setIsAddonDialogOpen}
-          meal={meal}
-          onAddToCart={handleAddToCartWithAddons}
-        />
-      )}
 
       <MealDetailDialog 
         isOpen={isDetailDialogOpen}

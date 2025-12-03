@@ -17,10 +17,13 @@ export interface Meal {
   ingredients?: string[];
 }
 
-export interface CartItem extends Meal {
+export interface CartItem {
+  id: string; // Corresponds to Meal ID
+  name: string;
+  price: number;
   quantity: number;
-  selectedAddons?: Addon[];
-  originalId: string;
+  imageId: string;
+  vendor: string;
 }
 
 export interface FilterState {

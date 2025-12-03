@@ -1,148 +1,112 @@
 'use client';
 
-import { createContext, useContext, useState, ReactNode } from 'react';
-import type { Meal, CartItem, Addon } from '@/lib/types';
+import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import type { Meal, CartItem } from '@/lib/types';
 import { useToast } from './use-toast';
+import { useUser, useFirestore, useCollection } from '@/firebase';
+import { addItemToCart, updateItemQuantity, removeItemFromCart } from '@/firebase/firestore/cart';
+import { collection } from 'firebase/firestore';
 
 interface CartContextType {
   cart: CartItem[];
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
-  addToCart: (meal: Meal, quantity: number, selectedAddons: Addon[]) => void;
-  removeFromCart: (mealId: string) => void;
-  updateQuantity: (mealId: string, quantity: number) => void;
-  clearCart: () => void;
-  getQuantity: (mealId: string) => number;
+  addItem: (meal: Meal) => void;
+  removeItem: (mealId: string) => void;
+  updateItemQuantity: (mealId: string, quantity: number) => void;
+  clearCart: () => void; // This will need to be implemented
+  getItemQuantity: (mealId: string) => number;
   totalItems: number;
   totalPrice: number;
+  loading: boolean;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider = ({ children }: { children: ReactNode }) => {
-  const [cart, setCart] = useState<CartItem[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const { toast } = useToast();
+  const user = useUser();
+  const firestore = useFirestore();
 
-  const getCartItemId = (mealId: string, addons: Addon[] = []) => {
-    if (!addons || addons.length === 0) {
-      return mealId;
-    }
-    const addonIds = addons.map(a => a.id).sort().join('-');
-    return `${mealId}-${addonIds}`;
-  };
+  const cartColPath = user ? `users/${user.uid}/cart` : undefined;
+  const cartCol = cartColPath && firestore ? collection(firestore, cartColPath) : undefined;
+  const { data: cart, loading, error } = useCollection<CartItem>(cartCol);
 
-  const addToCart = (meal: Meal, quantity: number = 1, selectedAddons: Addon[] = []) => {
-    const cartItemId = getCartItemId(meal.id, selectedAddons);
-    
-    setCart((prevCart) => {
-      const existingItem = prevCart.find((item) => item.id === cartItemId);
-      if (existingItem) {
-        return prevCart.map((item) =>
-          item.id === cartItemId
-            ? { ...item, quantity: item.quantity + quantity }
-            : item
-        );
-      }
-      const addonPrice = selectedAddons.reduce((acc, addon) => acc + addon.price, 0);
-      return [
-        ...prevCart,
-        {
-          ...meal,
-          id: cartItemId, 
-          originalId: meal.id, 
-          price: meal.price + addonPrice, 
-          quantity,
-          selectedAddons,
-        },
-      ];
-    });
+  const cartItems = cart || [];
+
+  const addItem = (meal: Meal) => {
+    if (!user || !firestore) return;
+    addItemToCart(firestore, user.uid, meal);
     toast({
       title: 'Added to cart',
       description: `${meal.name} is now in your cart.`,
     });
   };
 
-  const removeFromCart = (cartItemId: string) => {
-    setCart((prevCart) => prevCart.filter((item) => item.id !== cartItemId));
+  const removeItem = (mealId: string) => {
+    if (!user || !firestore) return;
+    removeItemFromCart(firestore, user.uid, mealId);
   };
 
-  const updateQuantity = (cartItemId: string, quantity: number) => {
+  const updateItemQuantity = (mealId: string, quantity: number) => {
+    if (!user || !firestore) return;
     if (quantity <= 0) {
-      removeFromCart(cartItemId);
-      return;
-    }
-
-    const meal = cart.find(item => item.id === cartItemId) || allMeals.find(m => m.id === cartItemId);
-    
-    if (!meal) return;
-    
-    const cartItem = cart.find(item => item.id === cartItemId);
-
-    if (cartItem) {
-        setCart((prevCart) =>
-            prevCart.map((item) =>
-                item.id === cartItemId ? { ...item, quantity } : item
-            )
-        );
+      removeItem(mealId);
     } else {
-        // This is a simple meal (no addons), so we can add it directly.
-         const newCartItem: CartItem = {
-            ...meal,
-            id: meal.id,
-            originalId: meal.id,
-            quantity: quantity,
-            selectedAddons: [],
-        };
-        setCart(prevCart => [...prevCart, newCartItem]);
-        toast({
-          title: 'Added to cart',
-          description: `${meal.name} is now in your cart.`,
-        });
+      updateItemQuantity(firestore, user.uid, mealId, quantity);
     }
   };
   
-  const getQuantity = (mealId: string) => {
-    // This will get the total quantity for a meal, even with different addons.
-    // We filter for items whose ID starts with the meal's original ID.
-    return cart
-      .filter(item => item.originalId === mealId)
-      .reduce((total, item) => total + item.quantity, 0);
+  const getItemQuantity = (mealId: string) => {
+    const item = cartItems.find(item => item.id === mealId);
+    return item ? item.quantity : 0;
   }
 
   const clearCart = () => {
-    setCart([]);
+    if (!user || !firestore) return;
+    // You would need a function to batch delete items
+    console.log("Clearing cart...");
   };
 
-  const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
-  const totalPrice = cart.reduce(
+  const totalItems = cartItems.reduce((total, item) => total + item.quantity, 0);
+  const totalPrice = cartItems.reduce(
     (total, item) => total + item.price * item.quantity,
     0
   );
 
+  useEffect(() => {
+    if (error) {
+        console.error("Error fetching cart:", error);
+        toast({
+            title: "Could not load cart",
+            description: "Please try again later.",
+            variant: "destructive",
+        });
+    }
+  }, [error, toast]);
+
+
   return (
     <CartContext.Provider
       value={{
-        cart,
+        cart: cartItems,
         isOpen,
         setIsOpen,
-        addToCart,
-        removeFromCart,
-        updateQuantity,
+        addItem,
+        removeItem,
+        updateItemQuantity,
         clearCart,
-        getQuantity,
+        getItemQuantity,
         totalItems,
         totalPrice,
+        loading,
       }}
     >
       {children}
     </CartContext.Provider>
   );
 };
-
-// Dummy allMeals for type checking, assuming it exists somewhere.
-// In a real app this would be imported.
-const allMeals: Meal[] = [];
 
 
 export const useCart = () => {
