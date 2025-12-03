@@ -19,6 +19,7 @@ import {
   SidebarInset
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
+import type { UserProfile, ChefProfile } from '@/lib/types';
 
 export default function DashboardLayout({
   children,
@@ -37,30 +38,55 @@ export default function DashboardLayout({
     return undefined;
   }, [user, firestore]);
   
-  const { data: userData, loading } = useDoc<{role: string; vettingStatus?: string}>(userDocRef);
+  const { data: userData, loading: userLoading } = useDoc<UserProfile>(userDocRef);
+
+  const chefProfileRef = useMemo(() => {
+    if (user && firestore && userData?.chefProfileId) {
+        return doc(firestore, 'chefs', userData.chefProfileId);
+    }
+    return undefined;
+  }, [user, firestore, userData]);
+
+  const { data: chefProfile, loading: chefLoading } = useDoc<ChefProfile>(chefProfileRef);
+
+  const loading = userLoading || chefLoading;
 
   useEffect(() => {
-    if (!loading && user) {
-        if (userData?.role !== 'chef') {
-            router.replace('/');
-        } else if (userData?.vettingStatus !== 'approved') {
-            router.replace('/vetting-status');
+    if (loading) return; // Wait for data to load
+
+    if (!user) {
+        router.replace('/login');
+        return;
+    }
+    
+    if (userData?.role !== 'chef') {
+        router.replace('/');
+        return;
+    }
+    
+    if (userData.vettingStatus !== 'approved') {
+        router.replace('/vetting-status');
+        return;
+    }
+
+    // After approval, check if profile is complete.
+    // If not, redirect to setup page.
+    if (userData.vettingStatus === 'approved' && !chefProfile?.profileComplete) {
+        if (pathname !== '/chef-profile-setup') {
+            router.replace('/chef-profile-setup');
         }
     }
-    if (!loading && !user) {
-        router.replace('/login');
-    }
-  }, [user, userData, loading, router]);
+
+  }, [user, userData, chefProfile, loading, router, pathname]);
 
 
-  if (loading || !user || !userData || userData.vettingStatus !== 'approved') {
+  if (loading || !user || !userData || userData.vettingStatus !== 'approved' || (userData.vettingStatus === 'approved' && !chefProfile?.profileComplete)) {
     return (
       <div className="flex h-screen w-full items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
-
 
   return (
     <SidebarProvider>

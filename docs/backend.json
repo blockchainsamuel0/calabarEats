@@ -88,6 +88,10 @@
         },
         "workingHours": {
           "type": "object",
+          "properties": {
+              "start": {"type": "string"},
+              "end": {"type": "string"}
+          },
           "description": "The chef's working hours."
         },
         "rating": {
@@ -97,13 +101,24 @@
         "photoUrl": {
           "type": "string",
           "description": "URL to the chef's profile picture."
+        },
+        "vettingPhotoUrls": {
+            "type": "array",
+            "items": {
+                "type": "string",
+                "format": "uri"
+            },
+            "description": "URLs to the vetting photos uploaded by the chef."
+        },
+        "profileComplete": {
+            "type": "boolean",
+            "description": "Whether the chef has completed their profile setup."
         }
       },
       "required": [
         "ownerUserId",
         "name",
-        "addressText",
-        "location"
+        "addressText"
       ]
     },
     "Dish": {

@@ -1,4 +1,5 @@
 
+
 export interface Addon {
   id: string;
   name: string;
@@ -63,5 +64,20 @@ export interface UserProfile {
     phone?: string;
     role: 'customer' | 'chef' | 'admin';
     vettingStatus?: 'pending' | 'approved' | 'rejected';
+    chefProfileId?: string;
     createdAt: any;
+}
+
+
+export interface ChefProfile {
+    id: string;
+    ownerUserId: string;
+    name: string;
+    addressText: string;
+    workingHours?: {
+        start: string;
+        end: string;
+    },
+    vettingPhotoUrls?: string[];
+    profileComplete?: boolean;
 }
