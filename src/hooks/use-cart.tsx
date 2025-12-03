@@ -1,21 +1,23 @@
+
 'use client';
 
-import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import type { Meal, CartItem } from '@/lib/types';
+import { createContext, useContext, useState, ReactNode, useEffect, useMemo } from 'react';
+import type { Meal, CartItem, Addon } from '@/lib/types';
 import { useToast } from './use-toast';
 import { useUser, useFirestore, useCollection } from '@/firebase';
-import { addItemToCart, updateItemQuantity, removeItemFromCart } from '@/firebase/firestore/cart';
-import { collection } from 'firebase/firestore';
+import { addItemToCart, updateItemQuantity as updateFirestoreQuantity, removeItemFromCart, clearCart as clearFirestoreCart } from '@/firebase/firestore/cart';
+import { collection, doc } from 'firebase/firestore';
 
 interface CartContextType {
   cart: CartItem[];
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
-  addItem: (meal: Meal) => void;
+  addItem: (meal: Meal, quantity: number, addons?: Addon[]) => void;
   removeItem: (mealId: string) => void;
   updateItemQuantity: (mealId: string, quantity: number) => void;
-  clearCart: () => void; // This will need to be implemented
+  clearCart: () => void;
   getItemQuantity: (mealId: string) => number;
+  addToCart: (meal: Meal, quantity?: number, selectedAddons?: Addon[]) => void;
   totalItems: number;
   totalPrice: number;
   loading: boolean;
@@ -29,15 +31,39 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const user = useUser();
   const firestore = useFirestore();
 
-  const cartColPath = user ? `users/${user.uid}/cart` : undefined;
-  const cartCol = cartColPath && firestore ? collection(firestore, cartColPath) : undefined;
-  const { data: cart, loading, error } = useCollection<CartItem>(cartCol);
+  // Use a stable reference for the collection path
+  const cartCollectionRef = useMemo(() => {
+    if (user && firestore) {
+      return collection(firestore, 'users', user.uid, 'cart');
+    }
+    return undefined;
+  }, [user, firestore]);
 
-  const cartItems = cart || [];
+  const { data: cartFromFirestore, loading, error } = useCollection<CartItem>(cartCollectionRef);
 
-  const addItem = (meal: Meal) => {
-    if (!user || !firestore) return;
-    addItemToCart(firestore, user.uid, meal);
+  const cartItems = cartFromFirestore || [];
+
+  const addToCart = (meal: Meal, quantity: number = 1, selectedAddons: Addon[] = []) => {
+    if (!user || !firestore) {
+       toast({
+        title: 'Please log in',
+        description: 'You need to be logged in to manage your cart.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    // For simplicity, we use the meal ID as the cart item ID.
+    // If addons were to change the ID, more complex logic would be needed.
+    const itemToAdd = {
+        ...meal,
+        originalId: meal.id,
+        id: meal.id, 
+        quantity,
+        selectedAddons,
+    }
+
+    addItemToCart(firestore, user.uid, itemToAdd);
     toast({
       title: 'Added to cart',
       description: `${meal.name} is now in your cart.`,
@@ -54,7 +80,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     if (quantity <= 0) {
       removeItem(mealId);
     } else {
-      updateItemQuantity(firestore, user.uid, mealId, quantity);
+      updateFirestoreQuantity(firestore, user.uid, mealId, quantity);
     }
   };
   
@@ -65,11 +91,12 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
   const clearCart = () => {
     if (!user || !firestore) return;
-    // You would need a function to batch delete items
-    console.log("Clearing cart...");
+    clearFirestoreCart(firestore, user.uid, cartItems.map(item => item.id));
+    console.log("Cart cleared.");
   };
 
   const totalItems = cartItems.reduce((total, item) => total + item.quantity, 0);
+  
   const totalPrice = cartItems.reduce(
     (total, item) => total + item.price * item.quantity,
     0
@@ -78,11 +105,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     if (error) {
         console.error("Error fetching cart:", error);
-        toast({
-            title: "Could not load cart",
-            description: "Please try again later.",
-            variant: "destructive",
-        });
+        // Avoid spamming toasts if the error is persistent (e.g., rules issue)
     }
   }, [error, toast]);
 
@@ -93,11 +116,12 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         cart: cartItems,
         isOpen,
         setIsOpen,
-        addItem,
+        addItem: addToCart,
         removeItem,
         updateItemQuantity,
         clearCart,
         getItemQuantity,
+        addToCart,
         totalItems,
         totalPrice,
         loading,
@@ -116,3 +140,4 @@ export const useCart = () => {
   }
   return context;
 };
+

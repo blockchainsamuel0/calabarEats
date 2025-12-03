@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileoverview This file contains Genkit flows for managing orders in the marketplace.
@@ -90,7 +91,7 @@ export const createOrder = ai.defineFlow(
       chefId: chefId, // This needs to be the CHEF's User ID, not their name.
       items: orderItems,
       subtotal: subtotal,
-      deliveryAddress: {text: deliveryAddress}, // Matching schema
+      deliveryAddress: { text: deliveryAddress }, // Matching schema
       phone: phone,
       status: 'pending',
       payment: {
@@ -98,6 +99,17 @@ export const createOrder = ai.defineFlow(
       },
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
     });
+
+    // After creating order, clear the user's cart.
+    const cartColRef = db.collection('users').doc(auth.uid).collection('cart');
+    const cartSnapshot = await cartColRef.get();
+    if (!cartSnapshot.empty) {
+        const batch = db.batch();
+        cartSnapshot.docs.forEach(doc => {
+            batch.delete(doc.ref);
+        });
+        await batch.commit();
+    }
 
     return {
       orderId: orderRef.id,
@@ -134,3 +146,4 @@ export const chefAcceptOrder = ai.defineFlow(
     console.log(`Order ${input.orderId} accepted. Notifying customer.`);
   }
 );
+

@@ -27,9 +27,11 @@ import {
 import { Input } from '@/components/ui/input';
 import { createOrder } from '@/ai/orders';
 import { Loader2 } from 'lucide-react';
+import { useUser } from '@/firebase';
+import { useRouter } from 'next/navigation';
 
 const orderSchema = z.object({
-  name: z.string().min(2, 'Name is required'),
+  // name is not needed if user is logged in, but we can keep it for guest checkout later
   address: z.string().min(10, 'A valid address is required'),
   phone: z.string().min(10, 'A valid phone number is required'),
 });
@@ -45,17 +47,31 @@ export default function OrderForm({ isOpen, setIsOpen }: OrderFormProps) {
   const { cart, clearCart, totalPrice } = useCart();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const user = useUser();
+  const router = useRouter();
 
   const form = useForm<OrderFormValues>({
     resolver: zodResolver(orderSchema),
     defaultValues: {
-      name: '',
       address: '',
       phone: '',
     },
   });
 
+  // Prefill form if user data is available
+  useEffect(() => {
+    if (user) {
+        form.setValue('phone', user.phoneNumber || '');
+    }
+  }, [user, form]);
+
   const onSubmit = async (data: OrderFormValues) => {
+    if (!user) {
+        toast({ title: "Authentication Error", description: "You must be logged in to place an order.", variant: 'destructive'});
+        router.push('/login');
+        return;
+    }
+
     setIsSubmitting(true);
     try {
         const orderInput = {
@@ -72,7 +88,7 @@ export default function OrderForm({ isOpen, setIsOpen }: OrderFormProps) {
       const result = await createOrder(orderInput);
 
       console.log('Order created:', result);
-      clearCart();
+      // clearCart is now handled by the genkit flow after successful order creation.
       setIsOpen(false);
       toast({
         title: 'Order Placed!',
@@ -112,19 +128,6 @@ export default function OrderForm({ isOpen, setIsOpen }: OrderFormProps) {
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
             <FormField
               control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Full Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g. John Doe" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
               name="address"
               render={({ field }) => (
                 <FormItem>
@@ -161,3 +164,4 @@ export default function OrderForm({ isOpen, setIsOpen }: OrderFormProps) {
     </Dialog>
   );
 }
+

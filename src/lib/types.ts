@@ -18,7 +18,8 @@ export interface Meal {
 }
 
 export interface CartItem {
-  id: string; // Corresponds to Meal ID
+  id: string; // Corresponds to Meal ID / document ID in cart
+  originalId: string; // Corresponds to original Meal ID from data
   name: string;
   price: number;
   quantity: number;

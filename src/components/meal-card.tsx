@@ -1,3 +1,4 @@
+
 'use client';
 
 import Image from 'next/image';
@@ -11,7 +12,7 @@ import { ChefHat, Minus, Plus, Loader2 } from 'lucide-react';
 import MealDetailDialog from './meal-detail-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { placeQuickOrder } from '@/firebase/firestore/orders';
-import { useUser } from '@/firebase';
+import { useUser, useFirestore } from '@/firebase';
 import { useRouter } from 'next/navigation';
 
 interface MealCardProps {
@@ -21,6 +22,7 @@ interface MealCardProps {
 export default function MealCard({ meal }: MealCardProps) {
   const { addItem, updateItemQuantity, getItemQuantity } = useCart();
   const user = useUser();
+  const firestore = useFirestore();
   const router = useRouter();
   const { toast } = useToast();
   const image = getPlaceholderImage(meal.imageId);
@@ -36,7 +38,7 @@ export default function MealCard({ meal }: MealCardProps) {
       minimumFractionDigits: 0,
     }).format(price);
   };
-
+  
   const handleUpdateQuantity = (newQuantity: number) => {
     if (!user) {
       toast({
@@ -49,14 +51,15 @@ export default function MealCard({ meal }: MealCardProps) {
     }
 
     if (quantity === 0 && newQuantity > 0) {
-      addItem(meal);
+      // The addItem function in the hook now handles the logic of adding vs incrementing
+      addItem(meal, newQuantity);
     } else {
       updateItemQuantity(meal.id, newQuantity);
     }
   };
 
   const handleOrder = async () => {
-    if (!user) {
+    if (!user || !firestore) {
       toast({
         title: 'Please log in',
         description: 'You need to be logged in to place an order.',
@@ -67,7 +70,7 @@ export default function MealCard({ meal }: MealCardProps) {
     }
     setIsOrdering(true);
     try {
-      const orderId = await placeQuickOrder(user.uid, meal);
+      const orderId = await placeQuickOrder(firestore, user.uid, meal);
       toast({
         title: 'Order Placed!',
         description: `Your order #${orderId.slice(0, 6)} for ${meal.name} has been placed.`,
@@ -145,7 +148,7 @@ export default function MealCard({ meal }: MealCardProps) {
                 </Button>
                 </div>
             )}
-             <Button onClick={handleOrder} size="sm" disabled={isOrdering}>
+             <Button onClick={handleOrder} size="sm" variant="default" disabled={isOrdering}>
                 {isOrdering ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                 Order
             </Button>

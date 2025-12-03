@@ -21,7 +21,7 @@ import { getPlaceholderImage } from '@/lib/placeholder-images';
 import OrderForm from './order-form';
 
 export default function CartSheet() {
-  const { cart, isOpen, setIsOpen, updateQuantity, removeFromCart, totalItems, totalPrice } = useCart();
+  const { cart, isOpen, setIsOpen, updateItemQuantity, removeItem, totalItems, totalPrice } = useCart();
   const [isCheckoutOpen, setCheckoutOpen] = useState(false);
   
   const formatPrice = (price: number) => {
@@ -60,19 +60,12 @@ export default function CartSheet() {
                         </div>
                         <div className="flex-1 space-y-1.5">
                           <h3 className="font-medium leading-tight">{item.name}</h3>
-                          {item.selectedAddons && item.selectedAddons.length > 0 && (
-                            <div className="text-xs text-muted-foreground">
-                              {item.selectedAddons.map(addon => (
-                                <div key={addon.id}>+ {addon.name}</div>
-                              ))}
-                            </div>
-                          )}
                            <div className="flex items-center space-x-2">
                             <Button
                               variant="outline"
                               size="icon"
                               className="h-7 w-7"
-                              onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                              onClick={() => updateItemQuantity(item.id, item.quantity - 1)}
                             >
                               <Minus className="h-4 w-4" />
                             </Button>
@@ -81,7 +74,7 @@ export default function CartSheet() {
                               variant="outline"
                               size="icon"
                               className="h-7 w-7"
-                              onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                              onClick={() => updateItemQuantity(item.id, item.quantity + 1)}
                             >
                               <Plus className="h-4 w-4" />
                             </Button>
@@ -93,7 +86,7 @@ export default function CartSheet() {
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                            onClick={() => removeFromCart(item.id)}
+                            onClick={() => removeItem(item.id)}
                            >
                             <Trash2 className="h-4 w-4" />
                            </Button>

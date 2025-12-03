@@ -16,22 +16,26 @@ import { FirestorePermissionError } from '@/firebase/errors';
 export async function placeQuickOrder(db: Firestore, userId: string, meal: Meal): Promise<string> {
   const ordersColRef = collection(db, 'orders');
 
+  // This data structure should align with the 'Order' entity in backend.json
   const orderData = {
     customerId: userId,
-    chefId: meal.vendor, // Assuming vendor is the chefId
+    chefId: meal.vendor, // Assuming vendor is the chef's ID
     items: [
       {
-        dishId: meal.id,
+        dishId: meal.id, // Corresponds to Meal.id
         quantity: 1,
-        price: meal.price,
+        price: meal.price, // Price at time of order
+        // In a real app, you might want a priceId reference here
       },
     ],
     subtotal: meal.price,
-    deliveryAddress: { text: 'N/A - Quick Order' }, // Placeholder
-    phone: 'N/A', // Placeholder
+    deliveryAddress: { text: 'N/A - Quick Order' }, // Placeholder address
+    phone: 'N/A', // Placeholder phone
     status: 'pending',
     payment: {
-      status: 'pending',
+      method: 'N/A',
+      status: 'pending', // e.g., 'pending', 'paid', 'failed'
+      reference: '',
     },
     createdAt: serverTimestamp(),
   };
@@ -46,7 +50,7 @@ export async function placeQuickOrder(db: Firestore, userId: string, meal: Meal)
       requestResourceData: orderData,
     });
     errorEmitter.emit('permission-error', permissionError);
-    // Re-throw the error to be caught by the calling UI
+    // Re-throw the error to be caught by the calling UI, which can show a toast
     throw e;
   }
 }
