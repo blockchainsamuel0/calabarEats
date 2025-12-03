@@ -78,7 +78,7 @@ export default function CustomerSignupPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/40">
-      <Card className="w-full max-w-sm">
+      <Card className="w-full max-w-xs rounded-xl">
         <CardHeader className="text-center">
           <div className="inline-block p-4 bg-primary/10 rounded-full mx-auto mb-4 w-fit">
             <UtensilsCrossed className="w-8 h-8 text-primary" />
