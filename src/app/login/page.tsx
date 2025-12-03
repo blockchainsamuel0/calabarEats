@@ -159,12 +159,20 @@ export default function LoginPage() {
                 </form>
               </Form>
           </div>
-            <p className="mt-6 text-center text-sm text-muted-foreground">
-                Don't have an account?{' '}
-                <Link href="/customer-signup" className="font-semibold text-primary hover:underline">
-                    Sign up
-                </Link>
-            </p>
+            <div className="mt-6 text-center text-sm text-muted-foreground space-y-2">
+                <p>
+                    Don't have an account?{' '}
+                    <Link href="/customer-signup" className="font-semibold text-primary hover:underline">
+                        Sign up
+                    </Link>
+                </p>
+                 <p>
+                    Are you a chef?{' '}
+                    <Link href="/signup" className="font-semibold text-primary hover:underline">
+                        Become a partner
+                    </Link>
+                </p>
+            </div>
         </CardContent>
       </Card>
     </div>
