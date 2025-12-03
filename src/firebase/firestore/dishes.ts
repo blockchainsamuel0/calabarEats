@@ -23,6 +23,7 @@ export async function createOrUpdateDish(db: Firestore, chefId: string, data: an
     category: data.category,
     imageId: data.imageId,
     isAvailable: true, // Default to available
+    ingredients: data.ingredients ? data.ingredients.split(',').map((s: string) => s.trim()) : [],
     updatedAt: serverTimestamp(),
   };
 

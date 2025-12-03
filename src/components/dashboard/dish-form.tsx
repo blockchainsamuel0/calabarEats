@@ -48,6 +48,7 @@ const dishSchema = z.object({
   ),
   category: z.string().min(1, 'Category is required'),
   imageId: z.string().min(1, 'Image is required'),
+  ingredients: z.string().optional(),
 });
 
 type DishFormValues = z.infer<typeof dishSchema>;
@@ -72,6 +73,7 @@ export default function DishFormDialog({ isOpen, setIsOpen, dish }: DishFormDial
       price: 0,
       category: '',
       imageId: '',
+      ingredients: '',
     },
   });
 
@@ -83,6 +85,7 @@ export default function DishFormDialog({ isOpen, setIsOpen, dish }: DishFormDial
         price: dish.price,
         category: dish.category.toLowerCase(),
         imageId: dish.imageId,
+        ingredients: dish.ingredients?.join(', ') || '',
       });
     } else {
       form.reset({
@@ -91,6 +94,7 @@ export default function DishFormDialog({ isOpen, setIsOpen, dish }: DishFormDial
         price: 0,
         category: '',
         imageId: '',
+        ingredients: '',
       });
     }
   }, [dish, form, isOpen]);
@@ -206,6 +210,17 @@ export default function DishFormDialog({ isOpen, setIsOpen, dish }: DishFormDial
                     </FormItem>
                 )}
                 />
+            <FormField
+              control={form.control}
+              name="ingredients"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Ingredients</FormLabel>
+                  <FormControl><Textarea placeholder="Enter ingredients, separated by commas..." {...field} /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <DialogFooter>
               <Button type="submit" className="w-full" disabled={isSubmitting}>
                 {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
