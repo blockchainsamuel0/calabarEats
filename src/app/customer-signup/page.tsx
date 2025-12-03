@@ -152,12 +152,20 @@ export default function CustomerSignupPage() {
             )}
             Google
           </Button>
-          <p className="mt-4 text-center text-sm text-muted-foreground">
-            Already have an account?{' '}
-            <Link href="/login" className="font-semibold text-primary hover:underline">
-              Sign in
-            </Link>
-          </p>
+          <div className="mt-4 text-center text-sm text-muted-foreground space-y-2">
+            <p>
+                Already have an account?{' '}
+                <Link href="/login" className="font-semibold text-primary hover:underline">
+                Sign in
+                </Link>
+            </p>
+            <p>
+                Are you a chef?{' '}
+                <Link href="/signup" className="font-semibold text-primary hover:underline">
+                Become a partner
+                </Link>
+            </p>
+          </div>
         </CardContent>
       </Card>
     </div>
