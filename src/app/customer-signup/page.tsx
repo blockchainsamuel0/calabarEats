@@ -164,7 +164,7 @@ export default function CustomerSignupPage() {
             <p>
                 Are you a chef?{' '}
                 <Link href="/signup" className="font-semibold text-primary hover:underline">
-                Become a partner
+                  Sign up as a partner
                 </Link>
             </p>
           </div>
