@@ -22,7 +22,6 @@ export async function createOrUpdateDish(db: Firestore, chefId: string, data: an
     price: data.price,
     category: data.category,
     imageId: data.imageId,
-    isAvailable: true, // Default to available
     ingredients: data.ingredients ? data.ingredients.split(',').map((s: string) => s.trim()) : [],
     updatedAt: serverTimestamp(),
   };
@@ -37,6 +36,8 @@ export async function createOrUpdateDish(db: Firestore, chefId: string, data: an
       const colRef = collection(db, 'dishes');
       await addDoc(colRef, {
         ...dishData,
+        isAvailable: false, // Default to not available
+        inventoryCount: 0, // Default to 0
         createdAt: serverTimestamp(),
       });
     }
@@ -53,21 +54,25 @@ export async function createOrUpdateDish(db: Firestore, chefId: string, data: an
 }
 
 /**
- * Updates the availability status of a single dish.
+ * Updates the inventory count and availability of a single dish.
  *
  * @param db The Firestore instance.
  * @param dishId The ID of the dish to update.
- * @param isAvailable The new availability status.
+ * @param count The new inventory count.
  */
-export function updateDishAvailability(db: Firestore, dishId: string, isAvailable: boolean) {
+export function updateDishInventory(db: Firestore, dishId: string, count: number) {
   const dishRef = doc(db, 'dishes', dishId);
-  updateDoc(dishRef, { isAvailable }).catch((e) => {
+  const payload = {
+    inventoryCount: count,
+    isAvailable: count > 0,
+  };
+  updateDoc(dishRef, payload).catch((e) => {
     const permissionError = new FirestorePermissionError({
       path: dishRef.path,
       operation: 'update',
-      requestResourceData: { isAvailable },
+      requestResourceData: payload,
     });
     errorEmitter.emit('permission-error', permissionError);
-    console.error('Failed to update dish availability:', e);
+    console.error('Failed to update dish inventory:', e);
   });
 }

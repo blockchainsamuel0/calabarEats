@@ -6,11 +6,10 @@ import { useUser, useFirestore } from '@/firebase';
 import { useChefData } from '@/firebase/firestore/use-chef-data';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Loader2, Utensils, Plus } from 'lucide-react';
+import { Loader2, Utensils, Plus, Minus } from 'lucide-react';
 import { getPlaceholderImage } from '@/lib/placeholder-images';
-import { updateDishAvailability } from '@/firebase/firestore/dishes';
+import { updateDishInventory } from '@/firebase/firestore/dishes';
 import { useToast } from '@/hooks/use-toast';
 import DishFormDialog from '@/components/dashboard/dish-form';
 import type { Meal } from '@/lib/types';
@@ -23,13 +22,10 @@ export default function ChefDishesPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedDish, setSelectedDish] = useState<Meal | null>(null);
 
-  const handleAvailabilityChange = (dishId: string, isAvailable: boolean) => {
+  const handleInventoryChange = (dishId: string, currentCount: number, change: number) => {
     if (!firestore) return;
-    updateDishAvailability(firestore, dishId, isAvailable);
-    toast({
-        title: `Dish ${isAvailable ? 'Available' : 'Unavailable'}`,
-        description: `The dish has been updated.`,
-    })
+    const newCount = Math.max(0, currentCount + change); // Ensure count doesn't go below 0
+    updateDishInventory(firestore, dishId, newCount);
   };
 
   const handleEdit = (dish: Meal) => {
@@ -67,6 +63,7 @@ export default function ChefDishesPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {dishes.map((dish) => {
             const image = getPlaceholderImage(dish.imageId);
+            const inventoryCount = dish.inventoryCount || 0;
             return (
               <Card key={dish.id} className="flex flex-col">
                 {image && (
@@ -79,15 +76,32 @@ export default function ChefDishesPage() {
                   <CardDescription className="line-clamp-2">{dish.description}</CardDescription>
                 </CardHeader>
                 <CardContent className="flex-grow space-y-4">
-                  <p className="text-lg font-semibold">{formatPrice(dish.price)}</p>
-                  <div className="flex items-center space-x-2">
-                    <Switch
-                      id={`available-${dish.id}`}
-                      checked={dish.isAvailable}
-                      onCheckedChange={(checked) => handleAvailabilityChange(dish.id, checked)}
-                    />
-                    <Label htmlFor={`available-${dish.id}`}>Available</Label>
-                  </div>
+                    <div className="flex justify-between items-center">
+                        <p className="text-lg font-semibold">{formatPrice(dish.price)}</p>
+                        <div className="flex items-center gap-2">
+                            <Label htmlFor={`inventory-${dish.id}`} className="text-sm font-medium">Available:</Label>
+                            <div className="flex items-center space-x-2">
+                                <Button
+                                    id={`inventory-${dish.id}`}
+                                    variant="outline"
+                                    size="icon"
+                                    className="h-8 w-8"
+                                    onClick={() => handleInventoryChange(dish.id, inventoryCount, -1)}
+                                >
+                                    <Minus className="h-4 w-4" />
+                                </Button>
+                                <span className="w-6 text-center font-medium">{inventoryCount}</span>
+                                <Button
+                                    variant="outline"
+                                    size="icon"
+                                    className="h-8 w-8"
+                                    onClick={() => handleInventoryChange(dish.id, inventoryCount, 1)}
+                                >
+                                    <Plus className="h-4 w-4" />
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
                 </CardContent>
                 <div className="p-4 pt-0">
                     <Button variant="outline" className="w-full" onClick={() => handleEdit(dish)}>

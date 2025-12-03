@@ -16,6 +16,7 @@ export interface Meal {
   addons?: Addon[];
   ingredients?: string[];
   isAvailable?: boolean;
+  inventoryCount?: number;
 }
 
 export interface CartItem {

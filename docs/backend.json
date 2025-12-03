@@ -154,6 +154,10 @@
             "type": "boolean",
             "description": "Whether the dish is currently available for order."
         },
+        "inventoryCount": {
+            "type": "number",
+            "description": "The number of servings currently available."
+        },
         "ingredients": {
           "type": "array",
           "items": {
