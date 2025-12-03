@@ -65,7 +65,7 @@ export default function CartSheet() {
                           </div>
                            {item.selectedAddons && item.selectedAddons.length > 0 && (
                             <div className="text-xs text-muted-foreground">
-                                {item.selectedAddons.map(addon => addon.name).join(', ')}
+                                + {item.selectedAddons.map(addon => addon.name).join(', ')}
                             </div>
                           )}
                           <div className="flex justify-between items-center pt-1">
