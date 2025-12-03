@@ -37,11 +37,11 @@ export default function AppHeader() {
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background">
       <div className="container flex h-16 items-center">
-        <Link href="/" className="mr-4 flex items-center">
+        <Link href="/" className="mr-auto flex items-center">
           <UtensilsCrossed className="h-6 w-6 mr-2 text-primary" />
           <span className="font-bold text-lg">Calabar Eats</span>
         </Link>
-        <div className="flex flex-1 items-center justify-end space-x-2">
+        <div className="flex items-center justify-end space-x-2">
           {user ? (
             <>
               {isChef && (
@@ -72,6 +72,9 @@ export default function AppHeader() {
             </>
           ) : (
             <>
+              <Button asChild variant="link">
+                <Link href="/signup">Become a Partner</Link>
+              </Button>
               <Button asChild variant="ghost">
                 <Link href="/login">Login</Link>
               </Button>
