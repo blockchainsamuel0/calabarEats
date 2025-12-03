@@ -24,7 +24,7 @@ export default function AppHeader() {
       <div className="container flex h-16 items-center">
         <Link href="/" className="mr-4 flex items-center">
           <UtensilsCrossed className="h-6 w-6 mr-2 text-primary" />
-          <span className="font-bold text-lg">FoodNexus</span>
+          <span className="font-bold text-lg">Calabar Eats</span>
         </Link>
         <div className="flex flex-1 items-center justify-end space-x-2">
           {user ? (

@@ -83,7 +83,7 @@ export default function LoginPage() {
                 <UtensilsCrossed className="w-8 h-8 text-primary" />
             </div>
           <CardTitle className="text-2xl font-bold">Welcome Back</CardTitle>
-          <CardDescription>Sign in to continue to FoodNexus</CardDescription>
+          <CardDescription>Sign in to continue to Calabar Eats</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>

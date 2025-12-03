@@ -50,7 +50,7 @@ export default function SignupPage() {
     } else {
       toast({
         title: 'Account Created!',
-        description: 'Welcome to FoodNexus. Please log in.',
+        description: 'Welcome to Calabar Eats. Please log in.',
       });
       router.push('/login');
     }
@@ -84,7 +84,7 @@ export default function SignupPage() {
             <UtensilsCrossed className="w-8 h-8 text-primary" />
           </div>
           <CardTitle className="text-2xl font-bold">Create an Account</CardTitle>
-          <CardDescription>Join FoodNexus to order local meals.</CardDescription>
+          <CardDescription>Join Calabar Eats to order local meals.</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
