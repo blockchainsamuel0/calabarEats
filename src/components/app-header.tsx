@@ -76,7 +76,7 @@ export default function AppHeader() {
                 <Link href="/login">Login</Link>
               </Button>
               <Button asChild>
-                <Link href="/signup">Sign Up</Link>
+                <Link href="/customer-signup">Sign Up</Link>
               </Button>
             </>
           )}

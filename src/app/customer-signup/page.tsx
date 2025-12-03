@@ -1,12 +1,12 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useRouter } from 'next/navigation';
-import { signInWithEmail, signInWithGoogle } from '@/firebase/auth/auth';
+import { signUpWithEmail, signInWithGoogle } from '@/firebase/auth/auth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -14,75 +14,52 @@ import { Input } from '@/components/ui/input';
 import { Loader2, UtensilsCrossed } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
-import { useUser, useFirestore, useDoc } from '@/firebase';
-import { doc } from 'firebase/firestore';
 
-const loginSchema = z.object({
+const signupSchema = z.object({
+  name: z.string().min(2, 'Name must be at least 2 characters'),
   email: z.string().email('Invalid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
-type LoginFormValues = z.infer<typeof loginSchema>;
+type SignupFormValues = z.infer<typeof signupSchema>;
 
-export default function LoginPage() {
+export default function CustomerSignupPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setGoogleLoading] = useState(false);
-  const user = useUser();
-  const firestore = useFirestore();
 
-   const userDocRef = useMemo(() => {
-    if (user && firestore) {
-      return doc(firestore, 'users', user.uid);
-    }
-    return undefined;
-  }, [user, firestore]);
-  
-  const { data: userData } = useDoc<{role: string; vettingStatus?: string}>(userDocRef);
-
-  const form = useForm<LoginFormValues>({
-    resolver: zodResolver(loginSchema),
+  const form = useForm<SignupFormValues>({
+    resolver: zodResolver(signupSchema),
     defaultValues: {
+      name: '',
       email: '',
       password: '',
     },
   });
 
-  const handleLoginSuccess = (role?: string, vettingStatus?: string) => {
-     toast({
-        title: 'Login Successful',
-        description: "Welcome back!",
-      });
-
-      if (role === 'chef' && vettingStatus !== 'approved') {
-        router.push('/vetting-status');
-      } else {
-        router.push('/');
-      }
-  }
-
-  const onSubmit = async (data: LoginFormValues) => {
+  const onSubmit = async (data: SignupFormValues) => {
     setIsLoading(true);
-    const { user: loggedInUser, error } = await signInWithEmail(data.email, data.password);
+    const { error } = await signUpWithEmail(data.name, data.email, data.password);
     if (error) {
       toast({
-        title: 'Login Failed',
+        title: 'Sign Up Failed',
         description: error.message,
         variant: 'destructive',
       });
-       setIsLoading(false);
+      setIsLoading(false);
     } else {
-        // We can't rely on the hook here as it might not have updated yet.
-        // A better approach would be to fetch user data directly after login,
-        // but for now we'll just redirect and let the destination page handle it.
-       router.push('/');
+      toast({
+        title: 'Account Created!',
+        description: "Welcome to Calabar Eats!",
+      });
+      router.push('/');
     }
   };
 
   const handleGoogleSignIn = async () => {
     setGoogleLoading(true);
-    const { user, error } = await signInWithGoogle();
+    const { error } = await signInWithGoogle();
     if (error) {
       toast({
         title: 'Google Sign-In Failed',
@@ -91,24 +68,40 @@ export default function LoginPage() {
       });
       setGoogleLoading(false);
     } else {
+        toast({
+            title: 'Signed In!',
+            description: "Welcome to Calabar Eats!",
+        });
       router.push('/');
     }
   };
-
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/40">
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
-            <div className="inline-block p-4 bg-primary/10 rounded-full mx-auto mb-4 w-fit">
-                <UtensilsCrossed className="w-8 h-8 text-primary" />
-            </div>
-          <CardTitle className="text-2xl font-bold">Welcome Back</CardTitle>
-          <CardDescription>Sign in to continue to Calabar Eats</CardDescription>
+          <div className="inline-block p-4 bg-primary/10 rounded-full mx-auto mb-4 w-fit">
+            <UtensilsCrossed className="w-8 h-8 text-primary" />
+          </div>
+          <CardTitle className="text-2xl font-bold">Create an Account</CardTitle>
+          <CardDescription>Sign up to start ordering delicious meals.</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Full Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="John Doe" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <FormField
                 control={form.control}
                 name="email"
@@ -137,33 +130,34 @@ export default function LoginPage() {
               />
               <Button type="submit" className="w-full" disabled={isLoading || isGoogleLoading}>
                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Sign In
+                Create Account
               </Button>
             </form>
           </Form>
           <div className="relative my-4">
             <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t" />
+              <span className="w-full border-t" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
+              <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
             </div>
           </div>
-            <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={isLoading || isGoogleLoading}>
-                {isGoogleLoading ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                   <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512"><path fill="currentColor" d="M488 261.8C488 403.3 381.7 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 126 21.2 177.2 56.4l-63.1 61.9C338.4 97.2 297.9 80 248 80c-82.8 0-150.4 66.6-150.4 148.4s67.6 148.4 150.4 148.4c84.3 0 142-63.3 147.1-146.8H248v-85.3h236.1c2.3 12.7 3.9 26.9 3.9 41.4z"></path></svg>
-                )}
-                Google
-            </Button>
-
-            <p className="mt-4 text-center text-sm text-muted-foreground">
-                Don't have an account?{' '}
-                <Link href="/customer-signup" className="font-semibold text-primary hover:underline">
-                    Sign up
-                </Link>
-            </p>
+          <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={isLoading || isGoogleLoading}>
+            {isGoogleLoading ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
+                <path fill="currentColor" d="M488 261.8C488 403.3 381.7 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 126 21.2 177.2 56.4l-63.1 61.9C338.4 97.2 297.9 80 248 80c-82.8 0-150.4 66.6-150.4 148.4s67.6 148.4 150.4 148.4c84.3 0 142-63.3 147.1-146.8H248v-85.3h236.1c2.3 12.7 3.9 26.9 3.9 41.4z"></path>
+              </svg>
+            )}
+            Google
+          </Button>
+          <p className="mt-4 text-center text-sm text-muted-foreground">
+            Already have an account?{' '}
+            <Link href="/login" className="font-semibold text-primary hover:underline">
+              Sign in
+            </Link>
+          </p>
         </CardContent>
       </Card>
     </div>
