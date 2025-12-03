@@ -41,7 +41,7 @@ export default function AppHeader() {
           <UtensilsCrossed className="h-6 w-6 mr-2 text-primary" />
           <span className="font-bold text-lg">Calabar Eats</span>
         </Link>
-        <div className="flex items-center justify-end space-x-2">
+        <div className="flex items-center justify-end space-x-1 md:space-x-2">
           {user ? (
             <>
               {isChef && (
@@ -72,7 +72,7 @@ export default function AppHeader() {
             </>
           ) : (
             <>
-              <Button asChild variant="link">
+              <Button asChild variant="link" className="hidden sm:inline-flex">
                 <Link href="/signup">Become a Partner</Link>
               </Button>
               <Button asChild variant="ghost">
