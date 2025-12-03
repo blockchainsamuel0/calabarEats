@@ -42,12 +42,12 @@ export default function CartSheet() {
           {cart.length > 0 ? (
             <>
               <ScrollArea className="flex-1">
-                <div className="flex flex-col gap-6 p-6">
+                <div className="flex flex-col gap-6 p-6 pr-6">
                   {cart.map((item) => {
                     const image = getPlaceholderImage(item.imageId);
                     return (
                       <div key={item.id} className="flex items-start space-x-4">
-                        <div className="relative h-20 w-20 overflow-hidden rounded-md flex-shrink-0">
+                        <div className="relative h-16 w-16 overflow-hidden rounded-md flex-shrink-0">
                           {image && (
                             <Image
                               src={image.imageUrl}
@@ -58,30 +58,31 @@ export default function CartSheet() {
                             />
                           )}
                         </div>
-                        <div className="flex-1 space-y-1.5">
-                          <h3 className="font-medium leading-tight">{item.name}</h3>
-                           <div className="flex items-center space-x-2">
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              className="h-7 w-7"
-                              onClick={() => updateItemQuantity(item.id, item.quantity - 1)}
-                            >
-                              <Minus className="h-4 w-4" />
-                            </Button>
-                            <span className="w-6 text-center font-medium">{item.quantity}</span>
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              className="h-7 w-7"
-                              onClick={() => updateItemQuantity(item.id, item.quantity + 1)}
-                            >
-                              <Plus className="h-4 w-4" />
-                            </Button>
+                        <div className="flex-1 space-y-2">
+                          <div className="flex justify-between items-start">
+                            <h3 className="font-medium leading-tight text-sm">{item.name}</h3>
+                            <p className="font-semibold text-sm">{formatPrice(item.price * item.quantity)}</p>
                           </div>
-                        </div>
-                        <div className="flex flex-col items-end space-y-2">
-                           <p className="font-semibold">{formatPrice(item.price * item.quantity)}</p>
+                          <div className="flex justify-between items-center">
+                            <div className="flex items-center space-x-2">
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                className="h-7 w-7"
+                                onClick={() => updateItemQuantity(item.id, item.quantity - 1)}
+                              >
+                                <Minus className="h-4 w-4" />
+                              </Button>
+                              <span className="w-5 text-center text-sm font-medium">{item.quantity}</span>
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                className="h-7 w-7"
+                                onClick={() => updateItemQuantity(item.id, item.quantity + 1)}
+                              >
+                                <Plus className="h-4 w-4" />
+                              </Button>
+                            </div>
                            <Button
                             variant="ghost"
                             size="icon"
@@ -90,6 +91,7 @@ export default function CartSheet() {
                            >
                             <Trash2 className="h-4 w-4" />
                            </Button>
+                          </div>
                         </div>
                       </div>
                     );
