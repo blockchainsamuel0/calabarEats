@@ -54,3 +54,14 @@ export interface OrderItem {
     quantity: number;
     price: number;
 }
+
+
+export interface UserProfile {
+    uid: string;
+    name: string;
+    email?: string;
+    phone?: string;
+    role: 'customer' | 'chef' | 'admin';
+    vettingStatus?: 'pending' | 'approved' | 'rejected';
+    createdAt: any;
+}

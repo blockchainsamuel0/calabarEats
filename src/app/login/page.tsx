@@ -1,8 +1,8 @@
 
 'use client';
 
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useState, useMemo } from 'react';
+import { useForm } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useRouter } from 'next/navigation';
@@ -14,6 +14,8 @@ import { Input } from '@/components/ui/input';
 import { Loader2, UtensilsCrossed } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
+import { useUser, useFirestore, useDoc } from '@/firebase';
+import { doc } from 'firebase/firestore';
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -27,6 +29,17 @@ export default function LoginPage() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setGoogleLoading] = useState(false);
+  const user = useUser();
+  const firestore = useFirestore();
+
+   const userDocRef = useMemo(() => {
+    if (user && firestore) {
+      return doc(firestore, 'users', user.uid);
+    }
+    return undefined;
+  }, [user, firestore]);
+  
+  const { data: userData } = useDoc<{role: string; vettingStatus?: string}>(userDocRef);
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -36,42 +49,50 @@ export default function LoginPage() {
     },
   });
 
+  const handleLoginSuccess = (role?: string, vettingStatus?: string) => {
+     toast({
+        title: 'Login Successful',
+        description: "Welcome back!",
+      });
+
+      if (role === 'chef' && vettingStatus !== 'approved') {
+        router.push('/vetting-status');
+      } else {
+        router.push('/');
+      }
+  }
+
   const onSubmit = async (data: LoginFormValues) => {
     setIsLoading(true);
-    const { error } = await signInWithEmail(data.email, data.password);
+    const { user: loggedInUser, error } = await signInWithEmail(data.email, data.password);
     if (error) {
       toast({
         title: 'Login Failed',
         description: error.message,
         variant: 'destructive',
       });
+       setIsLoading(false);
     } else {
-      toast({
-        title: 'Login Successful',
-        description: "Welcome back!",
-      });
-      router.push('/');
+        // We can't rely on the hook here as it might not have updated yet.
+        // A better approach would be to fetch user data directly after login,
+        // but for now we'll just redirect and let the destination page handle it.
+       router.push('/');
     }
-    setIsLoading(false);
   };
 
   const handleGoogleSignIn = async () => {
     setGoogleLoading(true);
-    const { error } = await signInWithGoogle();
+    const { user, error } = await signInWithGoogle();
     if (error) {
       toast({
         title: 'Google Sign-In Failed',
         description: error.message,
         variant: 'destructive',
       });
+      setGoogleLoading(false);
     } else {
-      toast({
-        title: 'Login Successful',
-        description: "Welcome!",
-      });
       router.push('/');
     }
-    setGoogleLoading(false);
   };
 
 

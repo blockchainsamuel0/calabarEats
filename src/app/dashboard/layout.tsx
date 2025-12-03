@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useUser, useFirestore, useDoc } from '@/firebase';
@@ -37,9 +37,23 @@ export default function DashboardLayout({
     return undefined;
   }, [user, firestore]);
   
-  const { data: userData, loading } = useDoc<{role: string}>(userDocRef);
+  const { data: userData, loading } = useDoc<{role: string; vettingStatus?: string}>(userDocRef);
 
-  if (loading || user === undefined) {
+  useEffect(() => {
+    if (!loading && user) {
+        if (userData?.role !== 'chef') {
+            router.replace('/');
+        } else if (userData?.vettingStatus !== 'approved') {
+            router.replace('/vetting-status');
+        }
+    }
+    if (!loading && !user) {
+        router.replace('/login');
+    }
+  }, [user, userData, loading, router]);
+
+
+  if (loading || !user || !userData || userData.vettingStatus !== 'approved') {
     return (
       <div className="flex h-screen w-full items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -47,20 +61,6 @@ export default function DashboardLayout({
     );
   }
 
-  if (!user || userData?.role !== 'chef') {
-     return (
-      <div className="flex h-screen w-full flex-col items-center justify-center bg-background text-center">
-        <ShieldAlert className="h-16 w-16 text-destructive" />
-        <h1 className="mt-4 text-2xl font-bold">Access Denied</h1>
-        <p className="mt-2 text-muted-foreground">
-          You do not have permission to view this page.
-        </p>
-        <Button onClick={() => router.push('/')} className="mt-6">
-          Go to Homepage
-        </Button>
-      </div>
-    );
-  }
 
   return (
     <SidebarProvider>

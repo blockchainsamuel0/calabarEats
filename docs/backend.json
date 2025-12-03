@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "User": {
@@ -7,7 +8,7 @@
       "properties": {
         "name": {
           "type": "string",
-          "description": "The user's full name."
+          "description": "The user's full name or restaurant name."
         },
         "email": {
           "type": "string",
@@ -27,6 +28,11 @@
             "admin"
           ]
         },
+        "vettingStatus": {
+            "type": "string",
+            "description": "The vetting status for a partner (chef).",
+            "enum": ["pending", "approved", "rejected"]
+        },
         "chefProfileId": {
           "type": "string",
           "description": "The ID of the associated chef profile, if the user is a chef."
@@ -39,7 +45,6 @@
       },
       "required": [
         "name",
-        "email",
         "role",
         "createdAt"
       ]

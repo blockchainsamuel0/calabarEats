@@ -1,12 +1,12 @@
 
 'use client';
 
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useState, useRef } from 'react';
+import { useForm } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useRouter } from 'next/navigation';
-import { signUpWithEmail, signInWithGoogle } from '@/firebase/auth/auth';
+import { setupRecaptcha, signInWithPhone } from '@/firebase/auth/auth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -14,144 +14,171 @@ import { Input } from '@/components/ui/input';
 import { Loader2, UtensilsCrossed } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
+import type { ConfirmationResult } from 'firebase/auth';
 
-const signupSchema = z.object({
-  name: z.string().min(2, 'Name is required'),
-  email: z.string().email('Invalid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+const step1Schema = z.object({
+  name: z.string().min(2, 'Name must be at least 2 characters'),
+  phone: z.string().min(10, 'Please enter a valid phone number'),
+});
+const step2Schema = z.object({
+  otp: z.string().length(6, 'OTP must be 6 digits'),
 });
 
-type SignupFormValues = z.infer<typeof signupSchema>;
+type Step1FormValues = z.infer<typeof step1Schema>;
+type Step2FormValues = z.infer<typeof step2Schema>;
 
 export default function SignupPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const [isGoogleLoading, setGoogleLoading] = useState(false);
+  const [step, setStep] = useState(1);
+  const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
 
-  const form = useForm<SignupFormValues>({
-    resolver: zodResolver(signupSchema),
-    defaultValues: {
-      name: '',
-      email: '',
-      password: '',
-    },
+  const step1Form = useForm<Step1FormValues>({
+    resolver: zodResolver(step1Schema),
+    defaultValues: { name: '', phone: '' },
   });
 
-  const onSubmit = async (data: SignupFormValues) => {
-    setIsLoading(true);
-    const { error } = await signUpWithEmail(data.name, data.email, data.password);
-    if (error) {
-      toast({
-        title: 'Sign Up Failed',
-        description: error.message,
-        variant: 'destructive',
-      });
-    } else {
-      toast({
-        title: 'Account Created!',
-        description: 'Welcome to Calabar Eats. Please log in.',
-      });
-      router.push('/login');
-    }
-    setIsLoading(false);
-  };
+  const step2Form = useForm<Step2FormValues>({
+    resolver: zodResolver(step2Schema),
+    defaultValues: { otp: '' },
+  });
   
-  const handleGoogleSignIn = async () => {
-    setGoogleLoading(true);
-    const { error } = await signInWithGoogle();
-    if (error) {
+  // This element is used by Firebase for the reCAPTCHA
+  const recaptchaContainerRef = useRef<HTMLDivElement>(null);
+
+
+  const onStep1Submit = async (data: Step1FormValues) => {
+    setIsLoading(true);
+    if (!recaptchaContainerRef.current) {
+        toast({title: "Error", description: "Recaptcha container not found.", variant: 'destructive'});
+        setIsLoading(false);
+        return;
+    }
+    
+    try {
+      const appVerifier = setupRecaptcha(recaptchaContainerRef.current);
+      const result = await signInWithPhone(data.phone, appVerifier);
+      setConfirmationResult(result);
+      setStep(2);
+      toast({ title: 'OTP Sent', description: 'Check your phone for a verification code.' });
+    } catch (error: any) {
+      console.error(error);
       toast({
-        title: 'Google Sign-In Failed',
-        description: error.message,
+        title: 'Failed to Send OTP',
+        description: error.message || 'An unknown error occurred.',
         variant: 'destructive',
       });
-    } else {
-      toast({
-        title: 'Sign Up Successful',
-        description: "Welcome!",
-      });
-      router.push('/');
+    } finally {
+      setIsLoading(false);
     }
-    setGoogleLoading(false);
+  };
+
+  const onStep2Submit = async (data: Step2FormValues) => {
+    setIsLoading(true);
+    if (!confirmationResult) {
+      toast({ title: 'Error', description: 'Verification session expired. Please try again.', variant: 'destructive' });
+      setStep(1);
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const name = step1Form.getValues('name');
+      await confirmationResult.confirm(data.otp);
+      
+      // The auth state change will be handled by our useUser hook,
+      // which will create the user doc. We just need to ensure the display name is set.
+      // The creation logic is now in `signInWithGoogle` and a new `onUserCreate` listener
+      // inside `auth.ts` for phone auth.
+
+       toast({
+        title: 'Account Created!',
+        description: 'Welcome to Calabar Eats! Your account is pending review.',
+      });
+      router.push('/vetting-status');
+
+    } catch (error: any) {
+      toast({
+        title: 'Verification Failed',
+        description: error.message || 'The OTP you entered is incorrect.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/40">
+       <div ref={recaptchaContainerRef}></div>
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
           <div className="inline-block p-4 bg-primary/10 rounded-full mx-auto mb-4 w-fit">
             <UtensilsCrossed className="w-8 h-8 text-primary" />
           </div>
-          <CardTitle className="text-2xl font-bold">Create an Account</CardTitle>
-          <CardDescription>Join Calabar Eats to order local meals.</CardDescription>
+          <CardTitle className="text-2xl font-bold">Become a Partner</CardTitle>
+          <CardDescription>Join Calabar Eats to sell your local meals.</CardDescription>
         </CardHeader>
         <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Full Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="John Doe" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input placeholder="name@example.com" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Password</FormLabel>
-                    <FormControl>
-                      <Input type="password" placeholder="••••••••" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button type="submit" className="w-full" disabled={isLoading || isGoogleLoading}>
-                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Create Account
-              </Button>
-            </form>
-          </Form>
+          {step === 1 && (
+            <Form {...step1Form}>
+              <form onSubmit={step1Form.handleSubmit(onStep1Submit)} className="space-y-4">
+                <FormField
+                  control={step1Form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Restaurant/Chef Name</FormLabel>
+                      <FormControl><Input placeholder="e.g. Mama's Kitchen" {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={step1Form.control}
+                  name="phone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Phone Number</FormLabel>
+                      <FormControl><Input placeholder="+2348012345678" {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Send OTP
+                </Button>
+              </form>
+            </Form>
+          )}
 
-           <div className="relative my-4">
-            <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
-            </div>
-          </div>
-            <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={isLoading || isGoogleLoading}>
-                {isGoogleLoading ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                   <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512"><path fill="currentColor" d="M488 261.8C488 403.3 381.7 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 126 21.2 177.2 56.4l-63.1 61.9C338.4 97.2 297.9 80 248 80c-82.8 0-150.4 66.6-150.4 148.4s67.6 148.4 150.4 148.4c84.3 0 142-63.3 147.1-146.8H248v-85.3h236.1c2.3 12.7 3.9 26.9 3.9 41.4z"></path></svg>
-                )}
-                Google
-            </Button>
-            
+          {step === 2 && (
+             <Form {...step2Form}>
+              <form onSubmit={step2Form.handleSubmit(onStep2Submit)} className="space-y-4">
+                 <FormField
+                  control={step2Form.control}
+                  name="otp"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Verification Code (OTP)</FormLabel>
+                      <FormControl><Input placeholder="••••••" {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Verify & Create Account
+                </Button>
+                <Button variant="link" size="sm" onClick={() => setStep(1)} className="w-full">
+                    Go Back
+                </Button>
+              </form>
+            </Form>
+          )}
+          
           <p className="mt-4 text-center text-sm text-muted-foreground">
             Already have an account?{' '}
             <Link href="/login" className="font-semibold text-primary hover:underline">
