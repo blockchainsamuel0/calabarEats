@@ -17,6 +17,9 @@ export default function Home() {
   });
 
   const filteredMeals = allMeals.filter((meal) => {
+    // Only show available meals to customers
+    if (!meal.isAvailable) return false;
+
     const categoryMatch =
       filters.category === 'all' || meal.category === filters.category;
     const searchMatch =

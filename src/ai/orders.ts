@@ -70,46 +70,78 @@ export const createOrder = ai.defineFlow(
       throw new Error('Cannot create an order with no items.');
     }
 
-    // Assume all items from one chef for simplicity
     const chefId = items[0].vendor;
+    const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
-    let subtotal = 0;
-    const orderItems = items.map(item => {
-      // In a real app, you'd fetch the price from the DB again to prevent tampering
-      subtotal += item.price * item.quantity;
-      return {
-        dishId: item.originalId,
-        quantity: item.quantity,
-        price: item.price,
-        // notes: item.notes // Add if notes are implemented
-      };
-    });
-    
-    // Create the order document
-    const orderRef = await db.collection('orders').add({
-      customerId: auth.uid,
-      chefId: chefId, // This needs to be the CHEF's User ID, not their name.
-      items: orderItems,
-      subtotal: subtotal,
-      deliveryAddress: { text: deliveryAddress }, // Matching schema
-      phone: phone,
-      status: 'pending',
-      payment: {
-        status: 'pending',
-      },
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
-    });
+    const orderRef = db.collection('orders').doc(); // Create a reference with a new ID
 
-    // After creating order, clear the user's cart.
-    const cartColRef = db.collection('users').doc(auth.uid).collection('cart');
-    const cartSnapshot = await cartColRef.get();
-    if (!cartSnapshot.empty) {
-        const batch = db.batch();
-        cartSnapshot.docs.forEach(doc => {
-            batch.delete(doc.ref);
+    await db.runTransaction(async (transaction) => {
+        // 1. Verify stock and get dish details for all items.
+        const dishRefsAndQuantities = items.map(item => ({
+            ref: db.collection('dishes').doc(item.originalId),
+            quantity: item.quantity,
+            price: item.price,
+        }));
+
+        const dishDocs = await transaction.getAll(...dishRefsAndQuantities.map(i => i.ref));
+        const orderItems = [];
+
+        for (let i = 0; i < dishDocs.length; i++) {
+            const dishDoc = dishDocs[i];
+            const item = items[i];
+
+            if (!dishDoc.exists) {
+                throw new Error(`Dish with ID ${item.originalId} does not exist.`);
+            }
+            
+            const dishData = dishDoc.data();
+            if (!dishData) throw new Error('Could not read dish data.');
+            
+            const currentInventory = dishData.inventoryCount || 0;
+            if (currentInventory < item.quantity) {
+                throw new Error(`Not enough stock for ${dishData.name}. Only ${currentInventory} available.`);
+            }
+
+            // Prepare order item data
+            orderItems.push({
+                dishId: item.originalId,
+                dishName: dishData.name, // Get name from DB
+                quantity: item.quantity,
+                price: item.price,
+            });
+
+            // 2. Update inventory for each dish
+            const newInventory = currentInventory - item.quantity;
+            transaction.update(dishRefsAndQuantities[i].ref, {
+                inventoryCount: newInventory,
+                isAvailable: newInventory > 0,
+            });
+        }
+        
+        // 3. Create the order document
+        transaction.set(orderRef, {
+          customerId: auth.uid,
+          chefId: chefId,
+          items: orderItems,
+          subtotal: subtotal,
+          deliveryAddress: { text: deliveryAddress }, // Matching schema
+          phone: phone,
+          status: 'pending',
+          payment: {
+            status: 'pending',
+          },
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
         });
-        await batch.commit();
-    }
+
+        // 4. Clear the user's cart
+        const cartColRef = db.collection('users').doc(auth.uid).collection('cart');
+        const cartSnapshot = await cartColRef.get(); // get() within a transaction reads from it
+        if (!cartSnapshot.empty) {
+            cartSnapshot.docs.forEach(doc => {
+                transaction.delete(doc.ref);
+            });
+        }
+    });
 
     return {
       orderId: orderRef.id,
@@ -146,4 +178,3 @@ export const chefAcceptOrder = ai.defineFlow(
     console.log(`Order ${input.orderId} accepted. Notifying customer.`);
   }
 );
-
