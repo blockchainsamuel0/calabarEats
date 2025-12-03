@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useUser, useFirestore, useDoc } from '@/firebase';
 import { doc } from 'firebase/firestore';
-import { Utensils, Package, Home, ChefHat, Loader2, ShieldAlert } from 'lucide-react';
+import { Utensils, Package, Home, ChefHat, Loader2, ShieldAlert, Wallet } from 'lucide-react';
 import {
   Sidebar,
   SidebarContent,
@@ -114,6 +114,14 @@ export default function DashboardLayout({
                     <Link href="/dashboard/dishes">
                         <Utensils />
                         Dishes
+                    </Link>
+                </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={pathname.startsWith('/dashboard/wallet')}>
+                    <Link href="/dashboard/wallet">
+                        <Wallet />
+                        Wallet
                     </Link>
                 </SidebarMenuButton>
             </SidebarMenuItem>

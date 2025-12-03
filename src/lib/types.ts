@@ -1,5 +1,4 @@
 
-
 export interface Addon {
   id: string;
   name: string;
@@ -80,4 +79,18 @@ export interface ChefProfile {
     },
     vettingPhotoUrls?: string[];
     profileComplete?: boolean;
+}
+
+export interface PayoutDetails {
+    accountName: string;
+    accountNumber: string;
+    bankName: string;
+    mobileMoneyNumber?: string;
+}
+
+export interface Wallet {
+    id: string;
+    balance: number;
+    pending: number;
+    payoutDetails?: PayoutDetails;
 }

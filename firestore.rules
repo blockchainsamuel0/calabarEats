@@ -47,7 +47,7 @@ service cloud.firestore {
       allow delete: if isAdmin();
 
       // Rules for the 'cart' subcollection
-      match /users/{userId}/cart/{cartItemId} {
+      match /cart/{cartItemId} {
         allow list, read, write: if isOwner(userId);
       }
     }
@@ -84,10 +84,12 @@ service cloud.firestore {
       allow update: if (isApprovedChef() && getOrderChefId() == request.auth.uid) || (isCustomer() && request.resource.data.status == 'cancelled') || isAdmin();
     }
 
-    // Wallets and Transactions are admin/system managed
+    // Rules for the 'wallets' collection
     match /wallets/{chefId} {
-      allow read: if (isApprovedChef() && getUserData(request.auth.uid).chefProfileId == chefId) || isAdmin();
-      allow write: if false; // Managed by Cloud Functions
+      allow read: if (isApprovedChef() && isOwner(chefId)) || isAdmin();
+      // Allow chef to create/update their own payout details, but not balance/pending
+      allow write: if (isApprovedChef() && isOwner(chefId))
+                    && request.resource.data.keys().hasOnly(['payoutDetails', 'payoutDetailsLastUpdated']);
     }
 
     match /transactions/{txnId} {
