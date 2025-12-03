@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useRouter } from 'next/navigation';
-import { signUpWithEmail, signInWithGoogle } from '@/firebase/auth/auth';
+import { signUpAsCustomer, signInWithGoogle } from '@/firebase/auth/auth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -40,7 +40,7 @@ export default function CustomerSignupPage() {
 
   const onSubmit = async (data: SignupFormValues) => {
     setIsLoading(true);
-    const { error } = await signUpWithEmail(data.name, data.email, data.password);
+    const { error } = await signUpAsCustomer(data.name, data.email, data.password);
     if (error) {
       toast({
         title: 'Sign Up Failed',

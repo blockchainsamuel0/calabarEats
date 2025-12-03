@@ -1,12 +1,12 @@
 
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useRouter } from 'next/navigation';
-import { setupRecaptcha, signInWithPhone } from '@/firebase/auth/auth';
+import { signUpAsPartner } from '@/firebase/auth/auth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -14,104 +14,50 @@ import { Input } from '@/components/ui/input';
 import { Loader2, UtensilsCrossed } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
-import type { ConfirmationResult } from 'firebase/auth';
 
-const step1Schema = z.object({
+const signupSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
-  phone: z.string().min(10, 'Please enter a valid phone number'),
-});
-const step2Schema = z.object({
-  otp: z.string().length(6, 'OTP must be 6 digits'),
+  email: z.string().email('Invalid email address'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
-type Step1FormValues = z.infer<typeof step1Schema>;
-type Step2FormValues = z.infer<typeof step2Schema>;
+type SignupFormValues = z.infer<typeof signupSchema>;
 
 export default function SignupPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const [step, setStep] = useState(1);
-  const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
 
-  const step1Form = useForm<Step1FormValues>({
-    resolver: zodResolver(step1Schema),
-    defaultValues: { name: '', phone: '' },
+  const form = useForm<SignupFormValues>({
+    resolver: zodResolver(signupSchema),
+    defaultValues: {
+      name: '',
+      email: '',
+      password: '',
+    },
   });
 
-  const step2Form = useForm<Step2FormValues>({
-    resolver: zodResolver(step2Schema),
-    defaultValues: { otp: '' },
-  });
-  
-  // This element is used by Firebase for the reCAPTCHA
-  const recaptchaContainerRef = useRef<HTMLDivElement>(null);
-
-
-  const onStep1Submit = async (data: Step1FormValues) => {
+  const onSubmit = async (data: SignupFormValues) => {
     setIsLoading(true);
-    if (!recaptchaContainerRef.current) {
-        toast({title: "Error", description: "Recaptcha container not found.", variant: 'destructive'});
-        setIsLoading(false);
-        return;
-    }
-    
-    try {
-      const appVerifier = setupRecaptcha(recaptchaContainerRef.current);
-      const result = await signInWithPhone(data.phone, appVerifier);
-      setConfirmationResult(result);
-      setStep(2);
-      toast({ title: 'OTP Sent', description: 'Check your phone for a verification code.' });
-    } catch (error: any) {
-      console.error(error);
+    const { error } = await signUpAsPartner(data.name, data.email, data.password);
+    if (error) {
       toast({
-        title: 'Failed to Send OTP',
-        description: error.message || 'An unknown error occurred.',
+        title: 'Sign Up Failed',
+        description: error.message,
         variant: 'destructive',
       });
-    } finally {
       setIsLoading(false);
-    }
-  };
-
-  const onStep2Submit = async (data: Step2FormValues) => {
-    setIsLoading(true);
-    if (!confirmationResult) {
-      toast({ title: 'Error', description: 'Verification session expired. Please try again.', variant: 'destructive' });
-      setStep(1);
-      setIsLoading(false);
-      return;
-    }
-
-    try {
-      const name = step1Form.getValues('name');
-      await confirmationResult.confirm(data.otp);
-      
-      // The auth state change will be handled by our useUser hook,
-      // which will create the user doc. We just need to ensure the display name is set.
-      // The creation logic is now in `signInWithGoogle` and a new `onUserCreate` listener
-      // inside `auth.ts` for phone auth.
-
-       toast({
+    } else {
+      toast({
         title: 'Account Created!',
-        description: 'Welcome to Calabar Eats! Your account is pending review.',
+        description: "Welcome to Calabar Eats! Your account is pending review.",
       });
       router.push('/vetting-status');
-
-    } catch (error: any) {
-      toast({
-        title: 'Verification Failed',
-        description: error.message || 'The OTP you entered is incorrect.',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsLoading(false);
     }
   };
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/40">
-       <div ref={recaptchaContainerRef}></div>
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
           <div className="inline-block p-4 bg-primary/10 rounded-full mx-auto mb-4 w-fit">
@@ -121,11 +67,10 @@ export default function SignupPage() {
           <CardDescription>Join Calabar Eats to sell your local meals.</CardDescription>
         </CardHeader>
         <CardContent>
-          {step === 1 && (
-            <Form {...step1Form}>
-              <form onSubmit={step1Form.handleSubmit(onStep1Submit)} className="space-y-4">
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 <FormField
-                  control={step1Form.control}
+                  control={form.control}
                   name="name"
                   render={({ field }) => (
                     <FormItem>
@@ -136,48 +81,33 @@ export default function SignupPage() {
                   )}
                 />
                 <FormField
-                  control={step1Form.control}
-                  name="phone"
+                  control={form.control}
+                  name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Phone Number</FormLabel>
-                      <FormControl><Input placeholder="+2348012345678" {...field} /></FormControl>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl><Input placeholder="partner@example.com" {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Password</FormLabel>
+                      <FormControl><Input type="password" placeholder="••••••••" {...field} /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
                 <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Send OTP
+                  Create Account
                 </Button>
               </form>
             </Form>
-          )}
-
-          {step === 2 && (
-             <Form {...step2Form}>
-              <form onSubmit={step2Form.handleSubmit(onStep2Submit)} className="space-y-4">
-                 <FormField
-                  control={step2Form.control}
-                  name="otp"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Verification Code (OTP)</FormLabel>
-                      <FormControl><Input placeholder="••••••" {...field} /></FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Verify & Create Account
-                </Button>
-                <Button variant="link" size="sm" onClick={() => setStep(1)} className="w-full">
-                    Go Back
-                </Button>
-              </form>
-            </Form>
-          )}
           
           <p className="mt-4 text-center text-sm text-muted-foreground">
             Already have an account?{' '}
