@@ -33,7 +33,7 @@ service cloud.firestore {
 
       // Rules for the 'cart' subcollection
       match /cart/{cartItemId} {
-        allow read, write, list: if isOwner(userId);
+        allow list, read, write: if isOwner(userId);
       }
     }
 
@@ -48,7 +48,9 @@ service cloud.firestore {
     // Rules for 'dishes' and 'prices' collections
     match /dishes/{dishId} {
       allow read: if true;
-      allow create, update, delete: if isChef() || isAdmin();
+      allow create: if isChef() || isAdmin();
+      // Only the chef who created the dish or an admin can update/delete it
+      allow update, delete: if (isChef() && resource.data.chefId == request.auth.uid) || isAdmin();
     }
 
     match /prices/{priceId} {
@@ -58,9 +60,10 @@ service cloud.firestore {
 
     // Rules for the 'orders' collection
     match /orders/{orderId} {
-      allow read: if isOwner(resource.data.customerId) || isOwner(get(/databases/$(database)/documents/chefs/$(resource.data.chefId)).data.ownerUserId) || isAdmin();
+      allow read: if isOwner(resource.data.customerId) || (isChef() && resource.data.chefId == request.auth.uid) || isAdmin();
       allow create: if isCustomer();
-      allow update: if (isChef() && !('payment' in request.resource.data)) || (isCustomer() && request.resource.data.status == 'cancelled') || isAdmin();
+      // Allow customer to cancel, chef to update status, and admin to do anything.
+      allow update: if (isChef() && resource.data.chefId == request.auth.uid && !('payment' in request.resource.data)) || (isCustomer() && request.resource.data.status == 'cancelled') || isAdmin();
     }
 
     // Wallets and Transactions are admin/system managed

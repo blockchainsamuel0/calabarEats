@@ -11,10 +11,11 @@ export interface Meal {
   description: string;
   price: number;
   category: string;
-  vendor: string;
+  vendor: string; // This is the Chef's User ID
   imageId: string;
   addons?: Addon[];
   ingredients?: string[];
+  isAvailable?: boolean;
 }
 
 export interface CartItem {
@@ -32,4 +33,24 @@ export interface FilterState {
   category: string;
   maxPrice: number;
   search: string;
+}
+
+export interface Order {
+    id: string;
+    customerId: string;
+    customerName?: string;
+    chefId: string;
+    items: OrderItem[];
+    subtotal: number;
+    deliveryAddress: { text: string };
+    phone: string;
+    status: 'pending' | 'accepted' | 'ready' | 'completed' | 'cancelled';
+    createdAt: any; // Firestore Timestamp
+}
+
+export interface OrderItem {
+    dishId: string;
+    dishName: string;
+    quantity: number;
+    price: number;
 }

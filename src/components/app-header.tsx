@@ -1,17 +1,32 @@
+
 'use client';
 
 import Link from 'next/link';
-import { ShoppingBasket, UtensilsCrossed } from 'lucide-react';
+import { ShoppingBasket, UtensilsCrossed, LayoutDashboard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/hooks/use-cart';
 import { useUser } from '@/firebase';
 import { signOut } from 'firebase/auth';
-import { useAuth } from '@/firebase';
+import { useAuth, useFirestore } from '@/firebase';
+import { useDoc } from '@/firebase/firestore/use-doc';
+import { doc } from 'firebase/firestore';
+import { useMemo } from 'react';
 
 export default function AppHeader() {
   const { setIsOpen, totalItems } = useCart();
   const user = useUser();
   const auth = useAuth();
+  const firestore = useFirestore();
+
+  const userDocRef = useMemo(() => {
+    if (user && firestore) {
+      return doc(firestore, 'users', user.uid);
+    }
+    return undefined;
+  }, [user, firestore]);
+  
+  const { data: userData } = useDoc<{role: string}>(userDocRef);
+  const isChef = userData?.role === 'chef';
 
   const handleSignOut = async () => {
     if (auth) {
@@ -29,6 +44,14 @@ export default function AppHeader() {
         <div className="flex flex-1 items-center justify-end space-x-2">
           {user ? (
             <>
+              {isChef && (
+                  <Button asChild variant="outline" size="sm">
+                    <Link href="/dashboard/orders">
+                      <LayoutDashboard className="h-4 w-4 mr-2" />
+                      Dashboard
+                    </Link>
+                  </Button>
+              )}
               <Button
                 variant="ghost"
                 size="icon"

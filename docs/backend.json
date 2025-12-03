@@ -106,6 +106,10 @@
       "description": "Represents a single dish that can be offered by chefs.",
       "type": "object",
       "properties": {
+        "chefId": {
+            "type": "string",
+            "description": "The user ID of the chef who owns this dish."
+        },
         "title": {
           "type": "string",
           "description": "The name of the dish."
@@ -117,6 +121,18 @@
         "category": {
           "type": "string",
           "description": "The category the dish belongs to (e.g., Soup, Special)."
+        },
+        "price": {
+            "type": "number",
+            "description": "The price of the dish."
+        },
+        "imageId": {
+            "type": "string",
+            "description": "The placeholder image ID for the dish."
+        },
+        "isAvailable": {
+            "type": "boolean",
+            "description": "Whether the dish is currently available for order."
         },
         "ingredients": {
           "type": "array",
@@ -139,9 +155,12 @@
         }
       },
       "required": [
+        "chefId",
         "title",
         "description",
-        "category"
+        "category",
+        "price",
+        "imageId"
       ]
     },
     "Price": {
@@ -204,6 +223,10 @@
           "type": "string",
           "description": "The user ID of the customer who placed the order."
         },
+        "customerName": {
+            "type": "string",
+            "description": "The name of the customer who placed the order."
+        },
         "chefId": {
           "type": "string",
           "description": "The chef ID who will fulfill the order."
@@ -215,6 +238,9 @@
             "properties": {
               "dishId": {
                 "type": "string"
+              },
+              "dishName": {
+                  "type": "string"
               },
               "priceId": {
                 "type": "string"
@@ -346,6 +372,10 @@
           "type": "string",
           "description": "The meal ID."
         },
+        "originalId": {
+            "type": "string",
+            "description": "The original meal ID from the data source."
+        },
         "name": {
           "type": "string",
           "description": "The name of the meal."
@@ -365,9 +395,15 @@
         "vendor": {
           "type": "string",
           "description": "The vendor of the meal."
+        },
+        "selectedAddons": {
+            "type": "array",
+            "items": {
+                "type": "object"
+            }
         }
       },
-      "required": ["id", "name", "price", "quantity", "imageId", "vendor"]
+      "required": ["id", "name", "price", "quantity", "imageId", "vendor", "originalId"]
     }
   },
   "auth": {

@@ -1,7 +1,7 @@
 
 'use client';
-import { collection, addDoc, serverTimestamp, Firestore } from 'firebase/firestore';
-import type { Meal } from '@/lib/types';
+import { collection, addDoc, serverTimestamp, Firestore, doc, updateDoc } from 'firebase/firestore';
+import type { Meal, Order } from '@/lib/types';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 
@@ -23,9 +23,9 @@ export async function placeQuickOrder(db: Firestore, userId: string, meal: Meal)
     items: [
       {
         dishId: meal.id, // Corresponds to Meal.id
+        dishName: meal.name,
         quantity: 1,
         price: meal.price, // Price at time of order
-        // In a real app, you might want a priceId reference here
       },
     ],
     subtotal: meal.price,
@@ -53,4 +53,27 @@ export async function placeQuickOrder(db: Firestore, userId: string, meal: Meal)
     // Re-throw the error to be caught by the calling UI, which can show a toast
     throw e;
   }
+}
+
+
+/**
+ * Updates the status of an order.
+ *
+ * @param db The Firestore instance.
+ * @param orderId The ID of the order to update.
+ * @param status The new status.
+ */
+export function updateOrderStatus(db: Firestore, orderId: string, status: Order['status']) {
+  const orderRef = doc(db, 'orders', orderId);
+  
+  updateDoc(orderRef, { status }).catch((e) => {
+    const permissionError = new FirestorePermissionError({
+        path: orderRef.path,
+        operation: 'update',
+        requestResourceData: { status },
+    });
+    errorEmitter.emit('permission-error', permissionError);
+    console.error(`Failed to update order ${orderId} to ${status}:`, e);
+    // Optionally re-throw or handle error to show in UI
+  });
 }
