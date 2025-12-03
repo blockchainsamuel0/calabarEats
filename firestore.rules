@@ -33,7 +33,7 @@ service cloud.firestore {
 
       // Rules for the 'cart' subcollection
       match /cart/{cartItemId} {
-        allow read, write: if isOwner(userId);
+        allow read, write, list: if isOwner(userId);
       }
     }
 
