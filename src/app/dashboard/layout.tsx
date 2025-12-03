@@ -64,7 +64,7 @@ export default function DashboardLayout({
         return;
     }
     
-    if (userData.vettingStatus !== 'approved') {
+    if (userData.vettingStatus !== 'approved' && pathname !== '/chef-profile-setup') {
         router.replace('/vetting-status');
         return;
     }
@@ -80,12 +80,17 @@ export default function DashboardLayout({
   }, [user, userData, chefProfile, loading, router, pathname]);
 
 
-  if (loading || !user || !userData || userData.vettingStatus !== 'approved' || (userData.vettingStatus === 'approved' && !chefProfile?.profileComplete)) {
+  if (loading || !user || !userData || (userData.vettingStatus === 'approved' && !chefProfile?.profileComplete && pathname !== '/chef-profile-setup') || (userData.vettingStatus !== 'approved' && pathname !== '/chef-profile-setup')) {
     return (
       <div className="flex h-screen w-full items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
+  }
+
+  // If the user is on the setup page, don't render the full dashboard layout
+  if (pathname === '/chef-profile-setup') {
+      return <>{children}</>;
   }
 
   return (

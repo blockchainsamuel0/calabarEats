@@ -8,10 +8,10 @@ import * as z from 'zod';
 import { useRouter } from 'next/navigation';
 import { useUser, useFirestore, useDoc } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
-import { createOrUpdateChefProfile } from '@/firebase/firestore/chefs';
+import { createOrUpdateChefProfile, updateUserVettingStatus } from '@/firebase/firestore/chefs';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Loader2, UtensilsCrossed, Upload } from 'lucide-react';
 import { doc } from 'firebase/firestore';
@@ -62,15 +62,22 @@ export default function ChefProfileSetupPage() {
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>, field: any) => {
     const files = Array.from(e.target.files || []);
     const currentPhotos = form.getValues('vettingPhotos') || [];
-    const newPhotos = [...currentPhotos, ...files].slice(0, 5); // Enforce max 5
-    field.onChange(newPhotos);
+    
+    // This logic is tricky with multiple file inputs. Let's rebuild it.
+    const photoFiles = form.getValues('vettingPhotos');
+    
+    // Find which photo slot this change came from
+    const slotIndex = photoSlots.findIndex(slot => slot.id === e.target.id);
+    
+    if (files[0] && slotIndex !== -1) {
+        // Create a new array to avoid mutation issues
+        const newPhotoFiles = [...photoFiles];
+        newPhotoFiles[slotIndex] = files[0];
+        field.onChange(newPhotoFiles);
 
-    // Create previews
-    const newPreviews: Record<string, string> = {};
-    newPhotos.forEach((file, index) => {
-        newPreviews[`photo${index+1}`] = URL.createObjectURL(file);
-    });
-    setPhotoPreviews(newPreviews);
+        // Update previews
+        setPhotoPreviews(prev => ({ ...prev, [e.target.id]: URL.createObjectURL(files[0]) }));
+    }
   };
 
 
@@ -83,15 +90,17 @@ export default function ChefProfileSetupPage() {
 
     try {
         await createOrUpdateChefProfile(firestore, user.uid, data, userData.chefProfileId);
+        await updateUserVettingStatus(firestore, user.uid, 'pending');
+        
         toast({
-            title: "Profile Complete!",
-            description: "Your profile has been set up. Welcome to the dashboard!",
+            title: "Profile Submitted!",
+            description: "Your profile is now under review. We'll notify you of the outcome.",
         });
-        router.push('/dashboard');
+        router.push('/vetting-status');
     } catch (error: any) {
         console.error("Profile setup failed:", error);
         toast({
-            title: "Setup Failed",
+            title: "Submission Failed",
             description: error.message || "Could not save your profile. Please try again.",
             variant: 'destructive',
         });
@@ -109,7 +118,7 @@ export default function ChefProfileSetupPage() {
           </div>
           <CardTitle className="text-2xl font-bold">Complete Your Profile</CardTitle>
           <CardDescription>
-            You're approved! Just a few more details to get you started.
+            Welcome! Please provide these details to complete your registration.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -200,7 +209,7 @@ export default function ChefProfileSetupPage() {
 
                 <Button type="submit" className="w-full !mt-8" disabled={isLoading}>
                   {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Save Profile & Enter Dashboard
+                  Submit Profile for Review
                 </Button>
             </form>
           </Form>

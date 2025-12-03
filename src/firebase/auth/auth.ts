@@ -44,13 +44,15 @@ onAuthStateChanged(auth, async (user) => {
                 email: user.email,
                 phone: user.phoneNumber,
                 role: role,
-                vettingStatus: isPartner ? 'pending' : null,
+                // Vetting status is not set to 'pending' immediately. It's set after profile setup.
+                vettingStatus: isPartner ? 'approved' : null, // Chef is approved to access setup page. Vetting starts after.
                 createdAt: serverTimestamp(),
              }, { merge: true });
 
              // If it's a chef, create their associated chef profile document
              if (isPartner) {
-                const chefProfileRef = doc(db, 'chefs', user.uid); // Use user ID as chef profile ID
+                // Use a consistent ID for the chef profile, like the user's UID
+                const chefProfileRef = doc(db, 'chefs', user.uid); 
                 batch.set(chefProfileRef, {
                     ownerUserId: user.uid,
                     profileComplete: false,

@@ -50,9 +50,9 @@ export default function SignupPage() {
     } else {
       toast({
         title: 'Account Created!',
-        description: "Welcome to Calabar Eats! Your account is pending review.",
+        description: "Welcome to Calabar Eats! Let's get your profile set up.",
       });
-      router.push('/vetting-status');
+      router.push('/chef-profile-setup');
     }
   };
 

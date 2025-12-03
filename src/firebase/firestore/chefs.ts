@@ -26,13 +26,8 @@ export async function createOrUpdateChefProfile(
   db: Firestore,
   userId: string,
   data: ProfileData,
-  chefProfileId?: string
+  chefProfileId: string
 ) {
-  if (!chefProfileId) {
-    // This case should not happen if the flow is correct, but as a fallback.
-    throw new Error('Chef Profile ID is missing.');
-  }
-
   // 1. Upload photos to Firebase Storage
   const photoUrls = await Promise.all(
     data.vettingPhotos.map((file, index) => 
@@ -68,7 +63,26 @@ export async function createOrUpdateChefProfile(
     console.error("Failed to update chef profile:", error);
     throw new Error("Failed to save your profile. Please check your connection and try again.");
   }
+}
 
-  // Note: The user document's chefProfileId should already be set upon user creation.
-  // If it weren't, you would update it here.
+
+/**
+ * Updates the vetting status of a user.
+ * @param db The Firestore instance.
+ * @param userId The ID of the user to update.
+ * @param status The new vetting status.
+ */
+export async function updateUserVettingStatus(
+  db: Firestore,
+  userId: string,
+  status: 'pending' | 'approved' | 'rejected'
+) {
+    const userDocRef = doc(db, 'users', userId);
+    try {
+        await updateDoc(userDocRef, { vettingStatus: status });
+    } catch (error) {
+        console.error("Failed to update vetting status:", error);
+        // This is an internal-like operation, so we might not need to throw a user-facing error
+        // unless an admin is performing this action and needs feedback.
+    }
 }
