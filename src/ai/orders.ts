@@ -9,14 +9,15 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import {getFirestore} from 'firebase-admin/firestore';
-import {initializeApp, getApps} from 'firebase-admin/app';
+import * as admin from 'firebase-admin';
+import { getFirestore } from 'firebase-admin/firestore';
 
 // Initialize Firebase Admin SDK if not already initialized
-if (!getApps().length) {
-  initializeApp();
+if (admin.apps.length === 0) {
+  admin.initializeApp();
 }
 const db = getFirestore();
+
 
 // Input schema for creating an order
 const CreateOrderInputSchema = z.object({
@@ -57,10 +58,6 @@ export const createOrder = ai.defineFlow(
         throw new Error('Authentication required.');
       }
       // Simple check, will rely on security rules for true enforcement
-      // const userDoc = await db.collection('users').doc(auth.uid).get();
-      // if (userDoc.data()?.role !== 'customer') {
-      //   throw new Error('Only customers can create orders.');
-      // }
     },
   },
   async (input, {auth}) => {
@@ -99,7 +96,7 @@ export const createOrder = ai.defineFlow(
       payment: {
         status: 'pending',
       },
-      createdAt: new Date(),
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
     });
 
     return {
