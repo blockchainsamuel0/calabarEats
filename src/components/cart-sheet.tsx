@@ -42,7 +42,7 @@ export default function CartSheet() {
           {cart.length > 0 ? (
             <>
               <ScrollArea className="flex-1">
-                <div className="flex flex-col gap-6 p-6 pr-6">
+                <div className="flex flex-col gap-6 p-6">
                   {cart.map((item) => {
                     const image = getPlaceholderImage(item.imageId);
                     return (
@@ -58,12 +58,17 @@ export default function CartSheet() {
                             />
                           )}
                         </div>
-                        <div className="flex-1 space-y-2">
+                        <div className="flex-1 space-y-1">
                           <div className="flex justify-between items-start">
                             <h3 className="font-medium leading-tight text-sm">{item.name}</h3>
                             <p className="font-semibold text-sm">{formatPrice(item.price * item.quantity)}</p>
                           </div>
-                          <div className="flex justify-between items-center">
+                           {item.selectedAddons && item.selectedAddons.length > 0 && (
+                            <div className="text-xs text-muted-foreground">
+                                {item.selectedAddons.map(addon => addon.name).join(', ')}
+                            </div>
+                          )}
+                          <div className="flex justify-between items-center pt-1">
                             <div className="flex items-center space-x-2">
                               <Button
                                 variant="outline"

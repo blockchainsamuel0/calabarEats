@@ -1,7 +1,7 @@
 
 'use client';
 import { doc, setDoc, deleteDoc, runTransaction, writeBatch, Firestore, collection, getDocs } from 'firebase/firestore';
-import type { CartItem, Meal } from '@/lib/types';
+import type { CartItem, Meal, Addon } from '@/lib/types';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 
@@ -11,24 +11,34 @@ import { FirestorePermissionError } from '@/firebase/errors';
  * @param db The Firestore instance.
  * @param userId The ID of the user.
  * @param meal The meal to add to the cart.
+ * @param selectedAddons The selected addons for the meal.
  */
-export function addItemToCart(db: Firestore, userId: string, meal: Meal & { originalId: string }) {
+export function addItemToCart(db: Firestore, userId: string, meal: Meal, selectedAddons: Addon[] = []) {
+  // Addon consideration: If addons change the price or create a unique item variation,
+  // the cart item ID should be a composite of the meal.id and addon ids.
+  // For simplicity here, we use meal.id and store addons in the document.
   const cartItemRef = doc(db, 'users', userId, 'cart', meal.id);
+
+  const totalAddonPrice = selectedAddons.reduce((sum, addon) => sum + addon.price, 0);
 
   runTransaction(db, async (transaction) => {
     const cartItemDoc = await transaction.get(cartItemRef);
+    
+    // For this simple case, we assume if the item exists, we just increment quantity.
+    // A more complex app would check if the addons are the same.
     if (cartItemDoc.exists()) {
       const currentQuantity = cartItemDoc.data().quantity || 0;
       transaction.update(cartItemRef, { quantity: currentQuantity + 1 });
     } else {
       const newCartItem: CartItem = {
         id: meal.id,
-        originalId: meal.originalId,
+        originalId: meal.id, // In a more complex app, this would be the base meal ID
         name: meal.name,
-        price: meal.price,
+        price: meal.price + totalAddonPrice, // Price includes addons
         quantity: 1,
         imageId: meal.imageId,
         vendor: meal.vendor,
+        selectedAddons: selectedAddons,
       };
       transaction.set(cartItemRef, newCartItem);
     }

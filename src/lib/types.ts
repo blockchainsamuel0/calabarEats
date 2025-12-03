@@ -25,6 +25,7 @@ export interface CartItem {
   quantity: number;
   imageId: string;
   vendor: string;
+  selectedAddons?: Addon[];
 }
 
 export interface FilterState {

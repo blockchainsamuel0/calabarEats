@@ -52,18 +52,10 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       });
       return;
     }
-    
-    // For simplicity, we use the meal ID as the cart item ID.
-    // If addons were to change the ID, more complex logic would be needed.
-    const itemToAdd = {
-        ...meal,
-        originalId: meal.id,
-        id: meal.id, 
-        quantity,
-        selectedAddons,
-    }
 
-    addItemToCart(firestore, user.uid, itemToAdd);
+    // The logic to add/increment is now within addItemToCart transaction
+    addItemToCart(firestore, user.uid, meal, selectedAddons);
+    
     toast({
       title: 'Added to cart',
       description: `${meal.name} is now in your cart.`,
@@ -140,4 +132,3 @@ export const useCart = () => {
   }
   return context;
 };
-
