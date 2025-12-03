@@ -1,4 +1,3 @@
-
 'use client';
 import { collection, addDoc, serverTimestamp, Firestore, doc, updateDoc } from 'firebase/firestore';
 import type { Meal, Order } from '@/lib/types';

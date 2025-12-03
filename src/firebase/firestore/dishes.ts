@@ -1,4 +1,3 @@
-
 'use client';
 import { collection, addDoc, updateDoc, serverTimestamp, doc, Firestore } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
