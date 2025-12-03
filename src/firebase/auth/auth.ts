@@ -7,8 +7,9 @@ import {
   signInWithPopup,
   GoogleAuthProvider,
   updateProfile,
+  onAuthStateChanged,
 } from 'firebase/auth';
-import { getFirestore, doc, setDoc } from 'firebase/firestore';
+import { getFirestore, doc, setDoc, getDoc } from 'firebase/firestore';
 import { initializeFirebase } from '@/firebase';
 
 const { app } = initializeFirebase();
@@ -20,14 +21,18 @@ export async function signUpWithEmail(name: string, email: string, password: str
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
 
+    // Set the user's display name
     await updateProfile(user, { displayName: name });
 
-    await setDoc(doc(db, 'users', user.uid), {
+    // Create the user document in Firestore
+    const userRef = doc(db, 'users', user.uid);
+    await setDoc(userRef, {
       name: name,
       email: user.email,
-      role: 'customer',
+      role: 'customer', // Default role
       createdAt: new Date().toISOString(),
     });
+
     return { user, error: null };
   } catch (error: any) {
     return { user: null, error };
@@ -49,16 +54,20 @@ export async function signInWithGoogle() {
         const result = await signInWithPopup(auth, provider);
         const user = result.user;
 
-        // Check if user already exists in Firestore, if not, create a new document
+        // Check if user already exists in Firestore.
         const userRef = doc(db, 'users', user.uid);
-        await setDoc(userRef, {
-            name: user.displayName,
-            email: user.email,
-            role: 'customer',
-            createdAt: new Date().toISOString(),
-        }, { merge: true });
-
-
+        const userDoc = await getDoc(userRef);
+        
+        // If the user doesn't exist, create a new document for them.
+        if (!userDoc.exists()) {
+            await setDoc(userRef, {
+                name: user.displayName,
+                email: user.email,
+                role: 'customer',
+                createdAt: new Date().toISOString(),
+            });
+        }
+        
         return { user, error: null };
     } catch (error: any) {
         return { user: null, error };
