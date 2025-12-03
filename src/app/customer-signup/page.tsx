@@ -87,8 +87,8 @@ export default function CustomerSignupPage() {
           <CardDescription>Sign up to start ordering delicious meals.</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            <Button variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={isLoading || isGoogleLoading}>
+          <div className="grid gap-4">
+            <Button onClick={handleGoogleSignIn} disabled={isLoading || isGoogleLoading} className="w-full">
               {isGoogleLoading ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : (
@@ -98,7 +98,7 @@ export default function CustomerSignupPage() {
               )}
               Continue with Google
             </Button>
-            <div className="relative">
+            <div className="relative my-2">
               <div className="absolute inset-0 flex items-center">
                 <span className="w-full border-t" />
               </div>
@@ -147,14 +147,14 @@ export default function CustomerSignupPage() {
                     </FormItem>
                   )}
                 />
-                <Button type="submit" className="w-full" disabled={isLoading || isGoogleLoading}>
+                <Button type="submit" className="w-full" disabled={isLoading || isGoogleLoading} variant="outline">
                   {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Create Account
                 </Button>
               </form>
             </Form>
           </div>
-          <div className="mt-4 text-center text-sm text-muted-foreground space-y-2">
+          <div className="mt-6 text-center text-sm text-muted-foreground space-y-2">
             <p>
                 Already have an account?{' '}
                 <Link href="/login" className="font-semibold text-primary hover:underline">
