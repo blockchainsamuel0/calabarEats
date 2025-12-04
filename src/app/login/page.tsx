@@ -15,7 +15,9 @@ import { Loader2, UtensilsCrossed } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { useUser, useFirestore, useDoc } from '@/firebase';
-import { doc } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
+import type { UserProfile } from '@/lib/types';
+
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -29,17 +31,7 @@ export default function LoginPage() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setGoogleLoading] = useState(false);
-  const user = useUser();
   const firestore = useFirestore();
-
-   const userDocRef = useMemo(() => {
-    if (user && firestore) {
-      return doc(firestore, 'users', user.uid);
-    }
-    return undefined;
-  }, [user, firestore]);
-  
-  const { data: userData } = useDoc<{role: string; vettingStatus?: string}>(userDocRef);
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -49,40 +41,51 @@ export default function LoginPage() {
     },
   });
 
-  const handleLoginSuccess = (role?: string, vettingStatus?: string) => {
-     toast({
+  const handleLoginSuccess = async (userId: string) => {
+    if (!firestore) return;
+
+    const userDocRef = doc(firestore, 'users', userId);
+    const userDoc = await getDoc(userDocRef);
+
+    if (userDoc.exists()) {
+      const userData = userDoc.data() as UserProfile;
+      toast({
         title: 'Login Successful',
         description: "Welcome back!",
       });
 
-      if (role === 'chef' && vettingStatus !== 'approved') {
-        router.push('/vetting-status');
+      if (userData.role === 'chef') {
+        router.replace('/dashboard');
       } else {
-        router.push('/');
+        router.replace('/');
       }
-  }
+    } else {
+      // User doc doesn't exist, default to customer page
+      // This might happen with very new accounts due to replication delay
+      router.replace('/');
+    }
+  };
 
   const onSubmit = async (data: LoginFormValues) => {
     setIsLoading(true);
     const { user: loggedInUser, error } = await signInWithEmail(data.email, data.password);
+    
     if (error) {
       toast({
         title: 'Login Failed',
         description: error.message,
         variant: 'destructive',
       });
-       setIsLoading(false);
-    } else {
-        // We can't rely on the hook here as it might not have updated yet.
-        // A better approach would be to fetch user data directly after login,
-        // but for now we'll just redirect and let the destination page handle it.
-       router.push('/');
+      setIsLoading(false);
+    } else if (loggedInUser) {
+      await handleLoginSuccess(loggedInUser.uid);
     }
   };
 
   const handleGoogleSignIn = async () => {
     setGoogleLoading(true);
     const { user, error } = await signInWithGoogle();
+    
     if (error) {
       toast({
         title: 'Google Sign-In Failed',
@@ -90,8 +93,8 @@ export default function LoginPage() {
         variant: 'destructive',
       });
       setGoogleLoading(false);
-    } else {
-      router.push('/');
+    } else if (user) {
+      await handleLoginSuccess(user.uid);
     }
   };
 

@@ -34,8 +34,12 @@ export default function Home() {
   const { data: userData, loading: userLoading } = useDoc<UserProfile>(userDocRef);
 
   useEffect(() => {
-    if (!userLoading && userData?.role === 'chef') {
-      router.replace('/dashboard');
+    // This effect handles redirection for logged-in users.
+    // It waits until user data is loaded to make a decision.
+    if (!userLoading && userData) {
+      if (userData.role === 'chef') {
+        router.replace('/dashboard');
+      }
     }
   }, [userData, userLoading, router]);
 
@@ -52,16 +56,19 @@ export default function Home() {
     return categoryMatch && searchMatch;
   });
 
-  // If user is a chef, show a loading/redirecting screen instead of the customer UI
-  if (userLoading || userData?.role === 'chef') {
+  // While checking user role, or if the user is a chef and is being redirected,
+  // show a loading screen to prevent flashing customer content.
+  if (userLoading || (userData && userData.role === 'chef')) {
     return (
       <div className="flex h-screen w-full flex-col items-center justify-center bg-muted/40">
         <Loader2 className="h-10 w-10 animate-spin text-primary" />
-        <p className="mt-4 text-muted-foreground">Redirecting to your dashboard...</p>
+        <p className="mt-4 text-muted-foreground">Loading your experience...</p>
       </div>
     );
   }
 
+
+  // Only render the customer UI if the user is not a chef.
   return (
     <div className="flex min-h-screen w-full flex-col bg-muted/40">
       <AppHeader />
