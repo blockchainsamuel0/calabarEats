@@ -47,19 +47,17 @@ export async function createOrUpdateChefProfile(
     updatedAt: serverTimestamp(),
   };
   
-  try {
-     await setDoc(profileDocRef, profilePayload, { merge: true });
-  } catch (error: any) {
+  // Use .catch() to handle permissions errors and emit a contextual error
+  return setDoc(profileDocRef, profilePayload, { merge: true }).catch((error) => {
     const permissionError = new FirestorePermissionError({
-      path: profileDocRef.path,
-      operation: 'update',
-      requestResourceData: profilePayload,
+        path: profileDocRef.path,
+        operation: 'update', // Using 'update' because of merge: true
+        requestResourceData: profilePayload,
     });
     errorEmitter.emit('permission-error', permissionError);
-    console.error("Failed to update chef profile:", error);
-    // Re-throw the error so the calling function can handle it (e.g., stop loading spinner)
+    // Re-throw the original error to ensure the UI can react (e.g., stop loading state)
     throw error;
-  }
+  });
 }
 
 
