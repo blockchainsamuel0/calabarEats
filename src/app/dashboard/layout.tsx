@@ -59,21 +59,26 @@ export default function DashboardLayout({
         router.replace('/');
         return;
     }
-    
-    if (userData.vettingStatus !== 'approved' && pathname !== '/chef-profile-setup') {
-        router.replace('/vetting-status');
-        return;
+
+    // New logic: If profile is not complete, always redirect to setup page.
+    if (!chefProfile?.profileComplete) {
+      if (pathname !== '/chef-profile-setup') {
+        router.replace('/chef-profile-setup');
+      }
+      return; // Stop further checks if profile is incomplete.
     }
 
-    if (userData.vettingStatus === 'approved' && !chefProfile?.profileComplete) {
-        if (pathname !== '/chef-profile-setup') {
-            router.replace('/chef-profile-setup');
+    // If profile IS complete, then check vetting status.
+    if (userData.vettingStatus !== 'approved') {
+        if (pathname !== '/vetting-status') {
+            router.replace('/vetting-status');
         }
+        return;
     }
 
   }, [user, userData, chefProfile, loading, router, pathname]);
 
-  if (loading || !user || !userData || (userData.role === 'chef' && userData.vettingStatus === 'approved' && !chefProfile) ) {
+  if (loading || !user || !userData || (userData.role === 'chef' && !chefProfile) ) {
     return (
       <div className="flex h-screen w-full items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -81,15 +86,16 @@ export default function DashboardLayout({
     );
   }
 
-  // If the user is on the setup page or still pending, don't render the full dashboard layout
-  if (pathname === '/chef-profile-setup' || userData.vettingStatus !== 'approved') {
+  // If user is setting up profile or waiting for vetting, don't render full layout.
+  if (!chefProfile?.profileComplete || userData.vettingStatus !== 'approved') {
       return <>{children}</>;
   }
+
 
   return (
     <div className="flex flex-col min-h-screen bg-muted/40">
         <AppHeader />
-        <main className="flex-1 p-4 sm:p-6 pb-20">{children}</main>
+        <main className="flex-1 p-4 sm:p-6 pb-20 md:ml-64">{children}</main>
         
         {/* Mobile Bottom Navigation */}
         <div className="fixed bottom-0 left-0 right-0 border-t bg-background md:hidden">
@@ -120,7 +126,7 @@ export default function DashboardLayout({
                 <ChefHat className="h-6 w-6 text-primary" />
                 <h1 className="text-lg font-semibold">Chef Dashboard</h1>
             </div>
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col flex-1">
                 {navItems.map((item) => {
                     const isActive = pathname.startsWith(item.href);
                     return (
@@ -164,10 +170,6 @@ export default function DashboardLayout({
                 </div>
             </div>
         </nav>
-
-         <div className="md:pl-64">
-             {children}
-         </div>
     </div>
   );
 }
