@@ -25,6 +25,10 @@ export async function createOrUpdateChefProfile(
   userId: string,
   data: ProfileData,
 ) {
+  // Define references upfront for error reporting
+  const profileDocRef = doc(db, 'chefs', userId);
+  const userDocRef = doc(db, 'users', userId);
+
   try {
     // 1. Upload photos to Firebase Storage
     const photoUrls = await Promise.all(
@@ -35,8 +39,7 @@ export async function createOrUpdateChefProfile(
 
     const batch = writeBatch(db);
 
-    // 2. Update the Chef Profile document
-    const profileDocRef = doc(db, 'chefs', userId);
+    // 2. Define payload for the Chef Profile document
     const profilePayload = {
       ownerUserId: userId,
       name: data.name,
@@ -46,38 +49,33 @@ export async function createOrUpdateChefProfile(
         end: data.endTime,
       },
       vettingPhotoUrls: photoUrls,
-      profileComplete: true, // Mark profile as complete
+      profileComplete: true,
       updatedAt: serverTimestamp(),
     };
     batch.set(profileDocRef, profilePayload, { merge: true });
 
-    // 3. Update the User document
-    const userDocRef = doc(db, 'users', userId);
+    // 3. Define payload for the User document
     const userPayload = {
-      onboardingStatus: 'completed', // Mark onboarding as completed
-      vettingStatus: 'pending' // Set vetting status to pending review
+      onboardingStatus: 'completed',
+      vettingStatus: 'pending'
     };
     batch.update(userDocRef, userPayload);
     
     // 4. Commit all batched writes
     await batch.commit();
 
-  } catch (error) {
-    if (error instanceof FirestorePermissionError) {
-       errorEmitter.emit('permission-error', error);
-    } else if ((error as any)?.code?.startsWith('storage/')) {
-       console.error("Firebase Storage Error:", error);
-    } 
-    else {
-      // Create a generic error for batch write failures
-      const permissionError = new FirestorePermissionError({
-          path: `chefs/${userId} or users/${userId}`,
-          operation: 'update',
-          requestResourceData: { name: data.name /* don't log files */ },
-      });
-      errorEmitter.emit('permission-error', permissionError);
-    }
+  } catch (error: any) {
+    // Determine which part of the batch write likely failed for better error context.
+    // We'll report on the user profile update as it's a likely candidate for permission issues.
+    const permissionError = new FirestorePermissionError({
+        path: userDocRef.path,
+        operation: 'update',
+        requestResourceData: { onboardingStatus: 'completed', vettingStatus: 'pending' },
+    });
+    errorEmitter.emit('permission-error', permissionError);
+
     // Re-throw the original error to ensure the UI's catch block is triggered
+    // and the loading spinner stops.
     throw error;
   }
 }
@@ -111,6 +109,7 @@ export async function updateUserVettingStatus(
 
 /**
  * Updates the open/closed status of a chef.
+ * @param db The Firestore instance.
  * @param chefId The ID of the chef to update.
  * @param status The new status 'open' | 'closed'.
  */
