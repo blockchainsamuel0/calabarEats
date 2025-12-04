@@ -22,7 +22,8 @@ export async function uploadFile(file: File, path: string): Promise<string> {
     return downloadURL;
   } catch (error) {
     console.error(`Upload failed for path: ${path}`, error);
-    // Depending on the app's needs, you might want to handle this error more gracefully
-    throw new Error(`Failed to upload ${file.name}.`);
+    // Re-throw the error so the calling function's catch block is triggered.
+    // This is crucial for stopping loading spinners in the UI.
+    throw new Error(`Failed to upload ${file.name}. Please check your connection and try again.`);
   }
 }

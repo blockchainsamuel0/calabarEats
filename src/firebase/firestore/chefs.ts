@@ -25,39 +25,53 @@ export async function createOrUpdateChefProfile(
   userId: string,
   data: ProfileData,
 ) {
-  // 1. Upload photos to Firebase Storage
-  const photoUrls = await Promise.all(
-    data.vettingPhotos.map((file, index) => 
-      uploadFile(file, `vetting_photos/${userId}/photo_${index + 1}`)
-    )
-  );
+  try {
+    // 1. Upload photos to Firebase Storage
+    const photoUrls = await Promise.all(
+      data.vettingPhotos.map((file, index) => 
+        uploadFile(file, `vetting_photos/${userId}/photo_${index + 1}`)
+      )
+    );
 
-  // A chef's profile ID is their UID
-  const profileDocRef = doc(db, 'chefs', userId);
-  const profilePayload = {
-    ownerUserId: userId,
-    name: data.name,
-    addressText: data.address,
-    workingHours: {
-      start: data.startTime,
-      end: data.endTime,
-    },
-    vettingPhotoUrls: photoUrls,
-    profileComplete: true,
-    updatedAt: serverTimestamp(),
-  };
-  
-  // Use .catch() to handle permissions errors and emit a contextual error
-  return setDoc(profileDocRef, profilePayload, { merge: true }).catch((error) => {
-    const permissionError = new FirestorePermissionError({
-        path: profileDocRef.path,
-        operation: 'update', // Using 'update' because of merge: true
-        requestResourceData: profilePayload,
-    });
-    errorEmitter.emit('permission-error', permissionError);
-    // Re-throw the original error to ensure the UI can react (e.g., stop loading state)
+    // A chef's profile ID is their UID
+    const profileDocRef = doc(db, 'chefs', userId);
+    const profilePayload = {
+      ownerUserId: userId,
+      name: data.name,
+      addressText: data.address,
+      workingHours: {
+        start: data.startTime,
+        end: data.endTime,
+      },
+      vettingPhotoUrls: photoUrls,
+      profileComplete: true,
+      updatedAt: serverTimestamp(),
+    };
+    
+    // Use .catch() to handle permissions errors and emit a contextual error
+    await setDoc(profileDocRef, profilePayload, { merge: true });
+
+  } catch (error) {
+    // This will now catch errors from both uploadFile and setDoc
+    if (error instanceof FirestorePermissionError) {
+      // If it's already our custom error, just emit it
+       errorEmitter.emit('permission-error', error);
+    } else if ((error as any)?.code?.startsWith('storage/')) {
+       // Handle storage errors specifically if needed, otherwise let the generic catch handle it.
+       console.error("Firebase Storage Error:", error);
+    } 
+    else {
+      // For Firestore permission errors during setDoc
+      const permissionError = new FirestorePermissionError({
+          path: `chefs/${userId}`,
+          operation: 'update', // Using 'update' because of merge: true
+          requestResourceData: { name: data.name /* don't log files */ },
+      });
+      errorEmitter.emit('permission-error', permissionError);
+    }
+    // Re-throw the original error to ensure the UI's catch block is triggered
     throw error;
-  });
+  }
 }
 
 
