@@ -36,66 +36,64 @@ export default function DashboardLayout({
   
   const { data: userData, loading: userLoading } = useDoc<UserProfile>(userDocRef);
 
-  const loading = userLoading;
+  const chefProfileRef = useMemo(() => {
+    if (user && firestore) {
+      return doc(firestore, 'chefs', user.uid);
+    }
+    return undefined;
+  }, [user, firestore]);
+
+  const { data: chefProfile, loading: chefLoading } = useDoc<ChefProfile>(chefProfileRef);
+
+  const loading = userLoading || chefLoading || user === undefined;
   
   useEffect(() => {
-    // Wait until loading is false and we have a definitive user object (or null)
-    if (loading || user === undefined) {
-      return; 
+    if (loading) {
+      return; // Wait for all data to be loaded
     }
 
-    // 1. Redirect unauthenticated users
+    // Rule 1: Redirect unauthenticated users
     if (!user) {
         router.replace('/login');
         return;
     }
     
-    // 2. We have a user, but we need their profile from Firestore to check roles
-    if (!userData) {
-      // This might happen briefly. If it persists, it could be an error.
-      // For now, the loading screen will show.
-      return;
-    }
-
-    // 3. Handle non-chef users
-    if (userData.role !== 'chef') {
+    // Rule 2: Redirect non-chef users
+    if (!userData || userData.role !== 'chef') {
         router.replace('/');
         return;
     }
     
-    // 4. Handle CHEF onboarding flow based on `onboardingStatus`
+    // From here, we know the user is an authenticated chef.
     
-    // If onboarding is pending, force them to the setup page.
-    if (userData.onboardingStatus === 'pending') {
+    // Rule 3: Chef onboarding is not complete, enforce setup.
+    // The `profileComplete` flag on the chef document is the source of truth.
+    if (!chefProfile?.profileComplete) {
       if (pathname !== '/chef-profile-setup') {
         router.replace('/chef-profile-setup');
       }
-      return;
+      return; // Stop further checks
     }
 
-    // If onboarding is complete, but they somehow land on the setup page, redirect them away.
-    if (userData.onboardingStatus === 'completed' && pathname === '/chef-profile-setup') {
-        router.replace('/dashboard');
-        return;
-    }
-
-    // After onboarding, check vetting status
-    if (userData.onboardingStatus === 'completed' && userData.vettingStatus !== 'approved') {
+    // Rule 4: Onboarding is complete, but vetting is not approved.
+    if (chefProfile.profileComplete && userData.vettingStatus !== 'approved') {
         if (pathname !== '/vetting-status') {
             router.replace('/vetting-status');
         }
-        return;
-    }
-    
-    // If they are fully approved and on the vetting page, send them to the dashboard
-    if (userData.vettingStatus === 'approved' && pathname === '/vetting-status') {
-        router.replace('/dashboard');
-        return;
+        return; // Stop further checks
     }
 
-  }, [user, userData, loading, router, pathname]);
+    // Rule 5: User is fully onboarded and approved.
+    // Redirect them from setup/vetting pages to the main dashboard.
+    if (userData.vettingStatus === 'approved') {
+        if (pathname === '/chef-profile-setup' || pathname === '/vetting-status') {
+            router.replace('/dashboard');
+        }
+    }
 
-  if (loading || user === undefined || !userData) {
+  }, [user, userData, chefProfile, loading, router, pathname]);
+
+  if (loading) {
     return (
       <div className="flex h-screen w-full items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -104,8 +102,8 @@ export default function DashboardLayout({
   }
 
   // If user is a chef but not fully onboarded/approved, render children without the main layout
-  // The useEffect above will handle redirection.
-  if (userData.role !== 'chef' || userData.onboardingStatus !== 'completed' || userData.vettingStatus !== 'approved') {
+  // The useEffect above will handle the redirection, this renders the page content (e.g., setup form)
+  if (userData?.role !== 'chef' || !chefProfile?.profileComplete || userData?.vettingStatus !== 'approved') {
       return <>{children}</>;
   }
 

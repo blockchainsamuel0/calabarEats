@@ -1,3 +1,4 @@
+
 'use client';
 import { doc, setDoc, updateDoc, Firestore, serverTimestamp, writeBatch } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
@@ -55,8 +56,9 @@ export async function createOrUpdateChefProfile(
     batch.set(profileDocRef, profilePayload, { merge: true });
 
     // 3. Define payload for the User document
+    // Note: We no longer set onboardingStatus here, as it's not the source of truth.
+    // Vetting status is set to pending.
     const userPayload = {
-      onboardingStatus: 'completed',
       vettingStatus: 'pending'
     };
     batch.update(userDocRef, userPayload);
@@ -66,11 +68,10 @@ export async function createOrUpdateChefProfile(
 
   } catch (error: any) {
     // Determine which part of the batch write likely failed for better error context.
-    // We'll report on the user profile update as it's a likely candidate for permission issues.
     const permissionError = new FirestorePermissionError({
-        path: userDocRef.path,
-        operation: 'update',
-        requestResourceData: { onboardingStatus: 'completed', vettingStatus: 'pending' },
+        path: profileDocRef.path, // More likely to fail than user doc update
+        operation: 'create', // or update
+        requestResourceData: { name: data.name, profileComplete: true },
     });
     errorEmitter.emit('permission-error', permissionError);
 
