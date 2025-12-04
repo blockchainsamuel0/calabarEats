@@ -1,13 +1,17 @@
+
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import AppHeader from '@/components/app-header';
 import MealFilters from '@/components/meal-filters';
 import MealGrid from '@/components/meal-grid';
 import CartSheet from '@/components/cart-sheet';
 import { allMeals, mealCategories } from '@/lib/data';
-import type { FilterState } from '@/lib/types';
-import { UtensilsCrossed } from 'lucide-react';
+import type { FilterState, UserProfile } from '@/lib/types';
+import { UtensilsCrossed, Loader2 } from 'lucide-react';
+import { useUser, useFirestore, useDoc } from '@/firebase';
+import { doc } from 'firebase/firestore';
 
 export default function Home() {
   const [filters, setFilters] = useState<FilterState>({
@@ -15,6 +19,25 @@ export default function Home() {
     maxPrice: 5000,
     search: '',
   });
+  
+  const user = useUser();
+  const firestore = useFirestore();
+  const router = useRouter();
+
+  const userDocRef = useMemo(() => {
+    if (user && firestore) {
+      return doc(firestore, 'users', user.uid);
+    }
+    return undefined;
+  }, [user, firestore]);
+  
+  const { data: userData, loading: userLoading } = useDoc<UserProfile>(userDocRef);
+
+  useEffect(() => {
+    if (!userLoading && userData?.role === 'chef') {
+      router.replace('/dashboard');
+    }
+  }, [userData, userLoading, router]);
 
   const filteredMeals = allMeals.filter((meal) => {
     // Only show available meals to customers
@@ -28,6 +51,16 @@ export default function Home() {
       meal.vendor.toLowerCase().includes(filters.search.toLowerCase());
     return categoryMatch && searchMatch;
   });
+
+  // If user is a chef, show a loading/redirecting screen instead of the customer UI
+  if (userLoading || userData?.role === 'chef') {
+    return (
+      <div className="flex h-screen w-full flex-col items-center justify-center bg-muted/40">
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+        <p className="mt-4 text-muted-foreground">Redirecting to your dashboard...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen w-full flex-col bg-muted/40">
