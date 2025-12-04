@@ -11,6 +11,8 @@ import { useAuth, useFirestore } from '@/firebase';
 import { useDoc } from '@/firebase/firestore/use-doc';
 import { doc } from 'firebase/firestore';
 import { useMemo } from 'react';
+import type { UserProfile } from '@/lib/types';
+
 
 export default function AppHeader() {
   const { setIsOpen, totalItems } = useCart();
@@ -25,8 +27,8 @@ export default function AppHeader() {
     return undefined;
   }, [user, firestore]);
   
-  const { data: userData } = useDoc<{role: string}>(userDocRef);
-  const isChef = userData?.role === 'chef';
+  const { data: userData } = useDoc<UserProfile>(userDocRef);
+  const isApprovedChef = userData?.role === 'chef' && userData?.vettingStatus === 'approved';
 
   const handleSignOut = async () => {
     if (auth) {
@@ -44,7 +46,7 @@ export default function AppHeader() {
         <div className="flex items-center justify-end space-x-1 md:space-x-2">
           {user ? (
             <>
-              {isChef && (
+              {isApprovedChef && (
                   <Button asChild variant="outline" size="sm">
                     <Link href="/dashboard/orders">
                       <LayoutDashboard className="h-4 w-4 mr-2" />
