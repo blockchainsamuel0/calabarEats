@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -48,7 +49,10 @@ export default function DashboardLayout({
   const loading = userLoading || chefLoading;
   
   useEffect(() => {
-    if (loading || user === undefined) return; 
+    // Wait until all data is loaded and user object is available
+    if (loading || user === undefined) {
+      return; 
+    }
 
     // 1. Redirect unauthenticated users
     if (!user) {
@@ -56,32 +60,41 @@ export default function DashboardLayout({
         return;
     }
     
-    // 2. Ensure user data is loaded and role is chef
-    if (!userData || userData.role !== 'chef') {
-        // If not a chef, redirect to home. Wait for userData to be loaded.
-        if (!userLoading) {
-          router.replace('/');
-        }
-        return;
+    // 2. Ensure user data is loaded before making role-based decisions
+    if (!userData) {
+      // If user data is still loading, wait. If it's loaded and null, it's an issue, but the loading flag should cover this.
+      return;
     }
 
-    // 3. Handle onboarding flow for chefs
-    if (pathname !== '/chef-profile-setup' && (!chefProfile || !chefProfile.profileComplete)) {
+    // 3. Handle non-chef users
+    if (userData.role !== 'chef') {
+        router.replace('/');
+        return;
+    }
+    
+    // 4. Handle CHEF onboarding flow
+    // At this point, we know user's role is 'chef'.
+    
+    // If we're already on a setup/status page, don't redirect.
+    if (pathname === '/chef-profile-setup' || pathname === '/vetting-status') {
+      return;
+    }
+
+    // If chef profile doesn't exist or is incomplete, force setup.
+    if (!chefProfile || !chefProfile.profileComplete) {
         router.replace('/chef-profile-setup');
         return;
     }
 
-    // 4. Handle vetting status after profile is complete
-    if (chefProfile?.profileComplete && userData.vettingStatus !== 'approved') {
-        if (pathname !== '/vetting-status') {
-            router.replace('/vetting-status');
-        }
+    // If profile is complete, but vetting is not approved, force to status page.
+    if (chefProfile.profileComplete && userData.vettingStatus !== 'approved') {
+        router.replace('/vetting-status');
         return;
     }
 
-  }, [user, userData, chefProfile, loading, router, pathname, userLoading]);
+  }, [user, userData, chefProfile, loading, router, pathname]);
 
-  if (loading || user === undefined || !userData || (userData.role === 'chef' && chefProfile === undefined) ) {
+  if (loading || user === undefined || !userData) {
     return (
       <div className="flex h-screen w-full items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -89,8 +102,9 @@ export default function DashboardLayout({
     );
   }
 
-  // If user is not yet an approved chef, just render children (setup or vetting page) without the full layout.
-  if (!chefProfile?.profileComplete || userData.vettingStatus !== 'approved') {
+  // If user's role is not chef, they will be redirected, but we can prevent rendering the layout.
+  // Also covers the case where a chef is not yet approved and is on a setup/vetting page.
+  if (userData.role !== 'chef' || !chefProfile?.profileComplete || userData.vettingStatus !== 'approved') {
       return <>{children}</>;
   }
 
