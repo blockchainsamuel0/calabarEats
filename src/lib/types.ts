@@ -67,6 +67,7 @@ export interface UserProfile {
     email?: string;
     phone?: string;
     role: 'customer' | 'chef' | 'admin';
+    onboardingStatus?: 'pending' | 'completed';
     vettingStatus?: 'pending' | 'approved' | 'rejected';
     chefProfileId?: string;
     createdAt: any;

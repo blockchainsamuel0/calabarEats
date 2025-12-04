@@ -28,6 +28,11 @@
             "admin"
           ]
         },
+        "onboardingStatus": {
+            "type": "string",
+            "description": "The onboarding status for a user, primarily for chefs.",
+            "enum": ["pending", "completed"]
+        },
         "vettingStatus": {
             "type": "string",
             "description": "The vetting status for a partner (chef).",

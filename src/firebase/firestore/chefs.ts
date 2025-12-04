@@ -1,5 +1,5 @@
 'use client';
-import { doc, setDoc, updateDoc, Firestore, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, updateDoc, Firestore, serverTimestamp, writeBatch } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { uploadFile } from '@/firebase/storage/uploads';
@@ -14,7 +14,7 @@ interface ProfileData {
 
 /**
  * Creates or updates a chef's profile, uploads their vetting photos,
- * and links the profile ID back to their user document.
+ * and updates their user document to complete onboarding.
  *
  * @param db The Firestore instance.
  * @param userId The ID of the user (chef).
@@ -33,7 +33,9 @@ export async function createOrUpdateChefProfile(
       )
     );
 
-    // A chef's profile ID is their UID
+    const batch = writeBatch(db);
+
+    // 2. Update the Chef Profile document
     const profileDocRef = doc(db, 'chefs', userId);
     const profilePayload = {
       ownerUserId: userId,
@@ -44,27 +46,33 @@ export async function createOrUpdateChefProfile(
         end: data.endTime,
       },
       vettingPhotoUrls: photoUrls,
-      profileComplete: true,
+      profileComplete: true, // Mark profile as complete
       updatedAt: serverTimestamp(),
     };
+    batch.set(profileDocRef, profilePayload, { merge: true });
+
+    // 3. Update the User document
+    const userDocRef = doc(db, 'users', userId);
+    const userPayload = {
+      onboardingStatus: 'completed', // Mark onboarding as completed
+      vettingStatus: 'pending' // Set vetting status to pending review
+    };
+    batch.update(userDocRef, userPayload);
     
-    // Use .catch() to handle permissions errors and emit a contextual error
-    await setDoc(profileDocRef, profilePayload, { merge: true });
+    // 4. Commit all batched writes
+    await batch.commit();
 
   } catch (error) {
-    // This will now catch errors from both uploadFile and setDoc
     if (error instanceof FirestorePermissionError) {
-      // If it's already our custom error, just emit it
        errorEmitter.emit('permission-error', error);
     } else if ((error as any)?.code?.startsWith('storage/')) {
-       // Handle storage errors specifically if needed, otherwise let the generic catch handle it.
        console.error("Firebase Storage Error:", error);
     } 
     else {
-      // For Firestore permission errors during setDoc
+      // Create a generic error for batch write failures
       const permissionError = new FirestorePermissionError({
-          path: `chefs/${userId}`,
-          operation: 'update', // Using 'update' because of merge: true
+          path: `chefs/${userId} or users/${userId}`,
+          operation: 'update',
           requestResourceData: { name: data.name /* don't log files */ },
       });
       errorEmitter.emit('permission-error', permissionError);
@@ -91,8 +99,13 @@ export async function updateUserVettingStatus(
         await updateDoc(userDocRef, { vettingStatus: status });
     } catch (error) {
         console.error("Failed to update vetting status:", error);
-        // This is an internal-like operation, so we might not need to throw a user-facing error
-        // unless an admin is performing this action and needs feedback.
+        const permissionError = new FirestorePermissionError({
+          path: userDocRef.path,
+          operation: 'update',
+          requestResourceData: { vettingStatus: status },
+        });
+        errorEmitter.emit('permission-error', permissionError);
+        throw error;
     }
 }
 
@@ -107,6 +120,12 @@ export async function updateChefStatus(db: Firestore, chefId: string, status: 'o
         await updateDoc(chefDocRef, { status: status });
     } catch (error) {
         console.error("Failed to update chef status:", error);
-        // Handle error appropriately
+        const permissionError = new FirestorePermissionError({
+          path: chefDocRef.path,
+          operation: 'update',
+          requestResourceData: { status },
+        });
+        errorEmitter.emit('permission-error', permissionError);
+        throw error;
     }
 }

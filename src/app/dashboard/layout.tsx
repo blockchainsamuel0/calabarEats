@@ -36,20 +36,10 @@ export default function DashboardLayout({
   
   const { data: userData, loading: userLoading } = useDoc<UserProfile>(userDocRef);
 
-  const chefProfileRef = useMemo(() => {
-    if (user && firestore) {
-        // A chef's profile ID is their UID
-        return doc(firestore, 'chefs', user.uid);
-    }
-    return undefined;
-  }, [user, firestore]);
-
-  const { data: chefProfile, loading: chefLoading } = useDoc<ChefProfile>(chefProfileRef);
-
-  const loading = userLoading || chefLoading;
+  const loading = userLoading;
   
   useEffect(() => {
-    // Wait until all data is loaded and user object is available
+    // Wait until loading is false and we have a definitive user object (or null)
     if (loading || user === undefined) {
       return; 
     }
@@ -60,9 +50,10 @@ export default function DashboardLayout({
         return;
     }
     
-    // 2. Ensure user data is loaded before making role-based decisions
+    // 2. We have a user, but we need their profile from Firestore to check roles
     if (!userData) {
-      // If user data is still loading, wait. If it's loaded and null, it's an issue, but the loading flag should cover this.
+      // This might happen briefly. If it persists, it could be an error.
+      // For now, the loading screen will show.
       return;
     }
 
@@ -72,27 +63,37 @@ export default function DashboardLayout({
         return;
     }
     
-    // 4. Handle CHEF onboarding flow
-    // At this point, we know user's role is 'chef'.
+    // 4. Handle CHEF onboarding flow based on `onboardingStatus`
     
-    // If we're already on a setup/status page, don't redirect.
-    if (pathname === '/chef-profile-setup' || pathname === '/vetting-status') {
+    // If onboarding is pending, force them to the setup page.
+    if (userData.onboardingStatus === 'pending') {
+      if (pathname !== '/chef-profile-setup') {
+        router.replace('/chef-profile-setup');
+      }
       return;
     }
 
-    // If chef profile doesn't exist or is incomplete, force setup.
-    if (!chefProfile || !chefProfile.profileComplete) {
-        router.replace('/chef-profile-setup');
+    // If onboarding is complete, but they somehow land on the setup page, redirect them away.
+    if (userData.onboardingStatus === 'completed' && pathname === '/chef-profile-setup') {
+        router.replace('/dashboard');
         return;
     }
 
-    // If profile is complete, but vetting is not approved, force to status page.
-    if (chefProfile.profileComplete && userData.vettingStatus !== 'approved') {
-        router.replace('/vetting-status');
+    // After onboarding, check vetting status
+    if (userData.onboardingStatus === 'completed' && userData.vettingStatus !== 'approved') {
+        if (pathname !== '/vetting-status') {
+            router.replace('/vetting-status');
+        }
+        return;
+    }
+    
+    // If they are fully approved and on the vetting page, send them to the dashboard
+    if (userData.vettingStatus === 'approved' && pathname === '/vetting-status') {
+        router.replace('/dashboard');
         return;
     }
 
-  }, [user, userData, chefProfile, loading, router, pathname]);
+  }, [user, userData, loading, router, pathname]);
 
   if (loading || user === undefined || !userData) {
     return (
@@ -102,9 +103,9 @@ export default function DashboardLayout({
     );
   }
 
-  // If user's role is not chef, they will be redirected, but we can prevent rendering the layout.
-  // Also covers the case where a chef is not yet approved and is on a setup/vetting page.
-  if (userData.role !== 'chef' || !chefProfile?.profileComplete || userData.vettingStatus !== 'approved') {
+  // If user is a chef but not fully onboarded/approved, render children without the main layout
+  // The useEffect above will handle redirection.
+  if (userData.role !== 'chef' || userData.onboardingStatus !== 'completed' || userData.vettingStatus !== 'approved') {
       return <>{children}</>;
   }
 

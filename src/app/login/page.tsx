@@ -44,25 +44,35 @@ export default function LoginPage() {
   const handleLoginSuccess = async (userId: string) => {
     if (!firestore) return;
 
-    const userDocRef = doc(firestore, 'users', userId);
-    const userDoc = await getDoc(userDocRef);
+    try {
+      const userDocRef = doc(firestore, 'users', userId);
+      const userDoc = await getDoc(userDocRef);
 
-    if (userDoc.exists()) {
-      const userData = userDoc.data() as UserProfile;
-      toast({
-        title: 'Login Successful',
-        description: "Welcome back!",
-      });
+      if (userDoc.exists()) {
+        const userData = userDoc.data() as UserProfile;
+        toast({
+          title: 'Login Successful',
+          description: "Welcome back!",
+        });
 
-      if (userData.role === 'chef') {
-        router.replace('/dashboard');
+        if (userData.role === 'chef') {
+           if (userData.onboardingStatus === 'pending') {
+             router.replace('/chef-profile-setup');
+           } else {
+             router.replace('/dashboard');
+           }
+        } else {
+          router.replace('/');
+        }
       } else {
+        // User doc might not be created yet, default to customer page and let homepage redirect.
+        toast({ title: 'Login Successful', description: "Finalizing your setup..."});
         router.replace('/');
       }
-    } else {
-      // User doc doesn't exist, default to customer page
-      // This might happen with very new accounts due to replication delay
-      router.replace('/');
+    } catch (error) {
+       console.error("Error fetching user data on login:", error);
+       toast({ title: 'Login Successful', description: "Could not retrieve user role, redirecting to home."});
+       router.replace('/');
     }
   };
 

@@ -48,7 +48,7 @@ onAuthStateChanged(auth, async (user) => {
                 email: user.email,
                 phone: user.phoneNumber,
                 role: role,
-                // Vetting status is NOT 'pending' on signup. It's set after profile setup.
+                onboardingStatus: isPartner ? 'pending' : 'completed',
                 vettingStatus: null,
                 createdAt: serverTimestamp(),
              }, { merge: true });

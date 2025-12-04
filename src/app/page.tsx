@@ -35,16 +35,23 @@ export default function Home() {
 
   useEffect(() => {
     // This effect handles redirection for logged-in users.
-    // It waits until user data is loaded to make a decision.
+    if (user === null) {
+      // User is not logged in, do nothing.
+      return;
+    }
+
     if (!userLoading && userData) {
       if (userData.role === 'chef') {
-        router.replace('/dashboard');
+        if (userData.onboardingStatus === 'pending') {
+          router.replace('/chef-profile-setup');
+        } else {
+          router.replace('/dashboard');
+        }
       }
     }
-  }, [userData, userLoading, router]);
+  }, [user, userData, userLoading, router]);
 
   const filteredMeals = allMeals.filter((meal) => {
-    // Only show available meals to customers
     if (!meal.isAvailable) return false;
 
     const categoryMatch =
@@ -56,9 +63,8 @@ export default function Home() {
     return categoryMatch && searchMatch;
   });
 
-  // While checking user role, or if the user is a chef and is being redirected,
-  // show a loading screen to prevent flashing customer content.
-  if (userLoading || (userData && userData.role === 'chef')) {
+  // While checking user role, or if the user is a chef and is being redirected, show a loading screen.
+  if (userLoading || user === undefined || (userData && userData.role === 'chef')) {
     return (
       <div className="flex h-screen w-full flex-col items-center justify-center bg-muted/40">
         <Loader2 className="h-10 w-10 animate-spin text-primary" />
@@ -67,8 +73,7 @@ export default function Home() {
     );
   }
 
-
-  // Only render the customer UI if the user is not a chef.
+  // Only render the customer UI if user is not a chef, or not logged in.
   return (
     <div className="flex min-h-screen w-full flex-col bg-muted/40">
       <AppHeader />
