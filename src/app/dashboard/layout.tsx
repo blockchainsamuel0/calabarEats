@@ -48,37 +48,40 @@ export default function DashboardLayout({
   const loading = userLoading || chefLoading;
   
   useEffect(() => {
-    if (loading) return; 
+    if (loading || user === undefined) return; 
 
+    // 1. Redirect unauthenticated users
     if (!user) {
         router.replace('/login');
         return;
     }
     
-    if (userData?.role !== 'chef') {
-        router.replace('/');
+    // 2. Ensure user data is loaded and role is chef
+    if (!userData || userData.role !== 'chef') {
+        // If not a chef, redirect to home. Wait for userData to be loaded.
+        if (!userLoading) {
+          router.replace('/');
+        }
         return;
     }
 
-    // New logic: If profile is not complete, always redirect to setup page.
-    if (!chefProfile?.profileComplete) {
-      if (pathname !== '/chef-profile-setup') {
+    // 3. Handle onboarding flow for chefs
+    if (pathname !== '/chef-profile-setup' && (!chefProfile || !chefProfile.profileComplete)) {
         router.replace('/chef-profile-setup');
-      }
-      return; // Stop further checks if profile is incomplete.
+        return;
     }
 
-    // If profile IS complete, then check vetting status.
-    if (userData.vettingStatus !== 'approved') {
+    // 4. Handle vetting status after profile is complete
+    if (chefProfile?.profileComplete && userData.vettingStatus !== 'approved') {
         if (pathname !== '/vetting-status') {
             router.replace('/vetting-status');
         }
         return;
     }
 
-  }, [user, userData, chefProfile, loading, router, pathname]);
+  }, [user, userData, chefProfile, loading, router, pathname, userLoading]);
 
-  if (loading || !user || !userData || (userData.role === 'chef' && !chefProfile) ) {
+  if (loading || user === undefined || !userData || (userData.role === 'chef' && chefProfile === undefined) ) {
     return (
       <div className="flex h-screen w-full items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -86,7 +89,7 @@ export default function DashboardLayout({
     );
   }
 
-  // If user is setting up profile or waiting for vetting, don't render full layout.
+  // If user is not yet an approved chef, just render children (setup or vetting page) without the full layout.
   if (!chefProfile?.profileComplete || userData.vettingStatus !== 'approved') {
       return <>{children}</>;
   }
