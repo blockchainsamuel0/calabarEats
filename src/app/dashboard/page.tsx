@@ -1,6 +1,6 @@
 'use client';
-import { useState } from 'react';
-import { useUser } from '@/firebase';
+import { useState, useEffect } from 'react';
+import { useUser, useFirestore } from '@/firebase';
 import { useChefData } from '@/firebase/firestore/use-chef-data';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -13,14 +13,22 @@ import { Separator } from '@/components/ui/separator';
 
 export default function DashboardPage() {
     const user = useUser();
+    const firestore = useFirestore();
     const { chefProfile, orders, loading } = useChefData(user?.uid);
-    const [isVendorOpen, setIsVendorOpen] = useState(chefProfile?.status === 'open');
+    const [isVendorOpen, setIsVendorOpen] = useState(false);
+    
+    useEffect(() => {
+        if(chefProfile?.status) {
+            setIsVendorOpen(chefProfile.status === 'open');
+        }
+    }, [chefProfile]);
+
 
     const handleStatusToggle = (isOpen: boolean) => {
-        if (!user) return;
+        if (!user || !firestore) return;
         const newStatus = isOpen ? 'open' : 'closed';
         setIsVendorOpen(isOpen);
-        updateChefStatus(user.uid, newStatus);
+        updateChefStatus(firestore, user.uid, newStatus);
     }
     
     const stats = {

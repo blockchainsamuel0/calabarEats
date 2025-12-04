@@ -57,7 +57,8 @@ export async function createOrUpdateChefProfile(
     });
     errorEmitter.emit('permission-error', permissionError);
     console.error("Failed to update chef profile:", error);
-    throw new Error("Failed to save your profile. Please check your connection and try again.");
+    // Re-throw the error so the calling function can handle it (e.g., stop loading spinner)
+    throw error;
   }
 }
 
@@ -88,8 +89,8 @@ export async function updateUserVettingStatus(
  * @param chefId The ID of the chef to update.
  * @param status The new status 'open' | 'closed'.
  */
-export async function updateChefStatus(chefId: string, status: 'open' | 'closed') {
-    const chefDocRef = doc(getFirestore(), 'chefs', chefId);
+export async function updateChefStatus(db: Firestore, chefId: string, status: 'open' | 'closed') {
+    const chefDocRef = doc(db, 'chefs', chefId);
     try {
         await updateDoc(chefDocRef, { status: status });
     } catch (error) {
