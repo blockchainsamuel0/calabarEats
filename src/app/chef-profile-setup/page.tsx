@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -46,8 +45,6 @@ export default function ChefProfileSetupPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [photoPreviews, setPhotoPreviews] = useState<Record<string, string>>({});
   
-  const {data: userData} = useDoc<UserProfile>(user && firestore ? doc(firestore, 'users', user.uid) : undefined);
-
   const form = useForm<ProfileSetupFormValues>({
     resolver: zodResolver(profileSetupSchema),
     defaultValues: {
@@ -63,33 +60,28 @@ export default function ChefProfileSetupPage() {
     const files = Array.from(e.target.files || []);
     const currentPhotos = form.getValues('vettingPhotos') || [];
     
-    // This logic is tricky with multiple file inputs. Let's rebuild it.
     const photoFiles = form.getValues('vettingPhotos');
     
-    // Find which photo slot this change came from
     const slotIndex = photoSlots.findIndex(slot => slot.id === e.target.id);
     
     if (files[0] && slotIndex !== -1) {
-        // Create a new array to avoid mutation issues
         const newPhotoFiles = [...photoFiles];
         newPhotoFiles[slotIndex] = files[0];
         field.onChange(newPhotoFiles);
-
-        // Update previews
         setPhotoPreviews(prev => ({ ...prev, [e.target.id]: URL.createObjectURL(files[0]) }));
     }
   };
 
 
   const onSubmit = async (data: ProfileSetupFormValues) => {
-    if (!user || !firestore || !userData?.chefProfileId) {
+    if (!user || !firestore) {
         toast({ title: "Error", description: "User session not found. Please log in again.", variant: 'destructive'});
         return;
     }
     setIsLoading(true);
 
     try {
-        await createOrUpdateChefProfile(firestore, user.uid, data, userData.chefProfileId);
+        await createOrUpdateChefProfile(firestore, user.uid, data);
         await updateUserVettingStatus(firestore, user.uid, 'pending');
         
         toast({
@@ -197,7 +189,7 @@ export default function ChefProfileSetupPage() {
                                         accept="image/*"
                                         className="hidden"
                                         onChange={(e) => handlePhotoChange(e, field)}
-                                        multiple={false} // Handle one by one to make it simpler
+                                        multiple={false}
                                     />
                                 </div>
                             ))}

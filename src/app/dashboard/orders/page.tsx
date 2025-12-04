@@ -10,7 +10,7 @@ export default function ChefOrdersPage() {
   const user = useUser();
   const { orders, loading } = useChefData(user?.uid);
 
-  const pendingOrders = orders.filter(o => o.status === 'pending' || o.status === 'accepted');
+  const pendingOrders = orders.filter(o => o.status === 'pending' || o.status === 'accepted' || o.status === 'ready');
   const pastOrders = orders.filter(o => o.status === 'completed' || o.status === 'cancelled');
 
   if (loading) {
@@ -24,7 +24,7 @@ export default function ChefOrdersPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="text-2xl font-bold tracking-tight mb-4">Pending Orders</h2>
+        <h2 className="text-2xl font-bold tracking-tight mb-4">Active Orders</h2>
         {pendingOrders.length > 0 ? (
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
              <AnimatePresence>
@@ -45,7 +45,7 @@ export default function ChefOrdersPage() {
         ) : (
           <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-muted bg-background/50 p-12 text-center">
             <PackageOpen className="h-12 w-12 text-muted-foreground" />
-            <h3 className="mt-4 text-lg font-semibold">No Pending Orders</h3>
+            <h3 className="mt-4 text-lg font-semibold">No Active Orders</h3>
             <p className="mt-1 text-sm text-muted-foreground">New orders will appear here as they come in.</p>
           </div>
         )}

@@ -37,6 +37,7 @@ import { Loader2 } from 'lucide-react';
 import type { Meal } from '@/lib/types';
 import { mealCategories } from '@/lib/data';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { Checkbox } from '@/components/ui/checkbox';
 
 const dishSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters'),
@@ -47,7 +48,8 @@ const dishSchema = z.object({
   ),
   category: z.string().min(1, 'Category is required'),
   imageId: z.string().min(1, 'Image is required'),
-  ingredients: z.string().optional(),
+  isLocalRecipe: z.boolean().default(false),
+  madeFreshDaily: z.boolean().default(false),
 });
 
 type DishFormValues = z.infer<typeof dishSchema>;
@@ -60,7 +62,6 @@ interface DishFormDialogProps {
 
 export default function DishFormDialog({ isOpen, setIsOpen, dish }: DishFormDialogProps) {
   const user = useUser();
-  const firestore = useFirestore();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -72,7 +73,8 @@ export default function DishFormDialog({ isOpen, setIsOpen, dish }: DishFormDial
       price: 0,
       category: '',
       imageId: '',
-      ingredients: '',
+      isLocalRecipe: false,
+      madeFreshDaily: false,
     },
   });
 
@@ -84,7 +86,8 @@ export default function DishFormDialog({ isOpen, setIsOpen, dish }: DishFormDial
         price: dish.price,
         category: dish.category.toLowerCase(),
         imageId: dish.imageId,
-        ingredients: dish.ingredients?.join(', ') || '',
+        isLocalRecipe: dish.isLocalRecipe || false,
+        madeFreshDaily: dish.madeFreshDaily || false,
       });
     } else {
       form.reset({
@@ -93,19 +96,20 @@ export default function DishFormDialog({ isOpen, setIsOpen, dish }: DishFormDial
         price: 0,
         category: '',
         imageId: '',
-        ingredients: '',
+        isLocalRecipe: false,
+        madeFreshDaily: false,
       });
     }
   }, [dish, form, isOpen]);
 
   const onSubmit = async (data: DishFormValues) => {
-    if (!user || !firestore) {
+    if (!user) {
       toast({ title: "Authentication Error", description: "You must be logged in.", variant: 'destructive'});
       return;
     }
     setIsSubmitting(true);
     try {
-      await createOrUpdateDish(firestore, user.uid, data, dish?.id);
+      await createOrUpdateDish(user.uid, data, dish?.id);
       setIsOpen(false);
       toast({
         title: `Dish ${dish ? 'Updated' : 'Created'}`,
@@ -209,17 +213,37 @@ export default function DishFormDialog({ isOpen, setIsOpen, dish }: DishFormDial
                     </FormItem>
                 )}
                 />
-            <FormField
-              control={form.control}
-              name="ingredients"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Ingredients</FormLabel>
-                  <FormControl><Textarea placeholder="Enter ingredients, separated by commas..." {...field} /></FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="space-y-2">
+                <FormField
+                    control={form.control}
+                    name="isLocalRecipe"
+                    render={({ field }) => (
+                        <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                            <FormControl>
+                                <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                            </FormControl>
+                            <div className="space-y-1 leading-none">
+                                <FormLabel>This is a local recipe</FormLabel>
+                            </div>
+                        </FormItem>
+                    )}
+                />
+                 <FormField
+                    control={form.control}
+                    name="madeFreshDaily"
+                    render={({ field }) => (
+                        <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                            <FormControl>
+                                <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                            </FormControl>
+                             <div className="space-y-1 leading-none">
+                                <FormLabel>Made fresh daily</FormLabel>
+                            </div>
+                        </FormItem>
+                    )}
+                />
+            </div>
+            
             <DialogFooter>
               <Button type="submit" className="w-full" disabled={isSubmitting}>
                 {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}

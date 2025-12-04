@@ -1,8 +1,8 @@
 'use client';
 import { useMemo } from 'react';
-import { useFirestore, useCollection } from '@/firebase';
-import { collection, query, where, orderBy } from 'firebase/firestore';
-import type { Order, Meal } from '@/lib/types';
+import { useFirestore, useCollection, useDoc } from '@/firebase';
+import { collection, query, where, orderBy, doc } from 'firebase/firestore';
+import type { Order, Meal, ChefProfile } from '@/lib/types';
 
 /**
  * A hook to fetch all relevant data for a chef's dashboard.
@@ -36,12 +36,21 @@ export function useChefData(chefId?: string) {
     return undefined;
   }, [firestore, chefId]);
 
+  const chefProfileRef = useMemo(() => {
+    if(firestore && chefId) {
+        return doc(firestore, 'chefs', chefId);
+    }
+    return undefined;
+  }, [firestore, chefId])
+
   const { data: orders, loading: ordersLoading } = useCollection<Order>(ordersQuery);
   const { data: dishes, loading: dishesLoading } = useCollection<Meal>(dishesQuery);
+  const { data: chefProfile, loading: chefLoading } = useDoc<ChefProfile>(chefProfileRef);
 
   return {
     orders: orders || [],
     dishes: dishes || [],
-    loading: ordersLoading || dishesLoading,
+    chefProfile,
+    loading: ordersLoading || dishesLoading || chefLoading,
   };
 }

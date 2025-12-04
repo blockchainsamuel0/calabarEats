@@ -1,4 +1,3 @@
-
 'use client';
 import { doc, setDoc, updateDoc, Firestore, serverTimestamp } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
@@ -20,13 +19,11 @@ interface ProfileData {
  * @param db The Firestore instance.
  * @param userId The ID of the user (chef).
  * @param data The profile data from the form.
- * @param chefProfileId Optional ID of the chef profile to update.
  */
 export async function createOrUpdateChefProfile(
   db: Firestore,
   userId: string,
   data: ProfileData,
-  chefProfileId: string
 ) {
   // 1. Upload photos to Firebase Storage
   const photoUrls = await Promise.all(
@@ -35,8 +32,8 @@ export async function createOrUpdateChefProfile(
     )
   );
 
-  // 2. Prepare the chef profile data
-  const profileDocRef = doc(db, 'chefs', chefProfileId);
+  // A chef's profile ID is their UID
+  const profileDocRef = doc(db, 'chefs', userId);
   const profilePayload = {
     ownerUserId: userId,
     name: data.name,
@@ -50,7 +47,6 @@ export async function createOrUpdateChefProfile(
     updatedAt: serverTimestamp(),
   };
   
-  // 3. Update the chef's profile document
   try {
      await setDoc(profileDocRef, profilePayload, { merge: true });
   } catch (error: any) {
@@ -84,5 +80,20 @@ export async function updateUserVettingStatus(
         console.error("Failed to update vetting status:", error);
         // This is an internal-like operation, so we might not need to throw a user-facing error
         // unless an admin is performing this action and needs feedback.
+    }
+}
+
+/**
+ * Updates the open/closed status of a chef.
+ * @param chefId The ID of the chef to update.
+ * @param status The new status 'open' | 'closed'.
+ */
+export async function updateChefStatus(chefId: string, status: 'open' | 'closed') {
+    const chefDocRef = doc(getFirestore(), 'chefs', chefId);
+    try {
+        await updateDoc(chefDocRef, { status: status });
+    } catch (error) {
+        console.error("Failed to update chef status:", error);
+        // Handle error appropriately
     }
 }

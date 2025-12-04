@@ -1,4 +1,3 @@
-
 import type { Meal } from './types';
 
 export const mealCategories = [
@@ -19,6 +18,7 @@ export const allMeals: Meal[] = [
     category: 'Soups',
     vendor: 'The Calabar Kitchen',
     imageId: 'afang-soup',
+    isAvailable: true,
     ingredients: ['Afang leaves', 'Waterleaf', 'Beef', 'Kpomo', 'Smoked Fish', 'Palm Oil', 'Spices'],
     addons: [
       { id: 'extra-meat', name: 'Extra Beef', price: 500 },
@@ -34,6 +34,7 @@ export const allMeals: Meal[] = [
     category: 'Soups',
     vendor: 'Mama Cass',
     imageId: 'edikaikong-soup',
+    isAvailable: true,
     ingredients: ['Ugwu leaves', 'Waterleaf', 'Assorted Meats', 'Stockfish', 'Dry Fish', 'Periwinkle'],
     addons: [
       { id: 'extra-meat', name: 'Extra Beef', price: 500 },
@@ -48,6 +49,7 @@ export const allMeals: Meal[] = [
     category: 'Soups',
     vendor: 'City Chefs',
     imageId: 'afia-efere',
+    isAvailable: true,
     ingredients: ['Goat Meat', 'Uyayak (Aidan fruit)', 'Pounded Yam (thickener)', 'Uziza leaves', 'Spices'],
     addons: [
       { id: 'extra-goat-meat', name: 'Extra Goat Meat', price: 1000 },
@@ -61,6 +63,7 @@ export const allMeals: Meal[] = [
     category: 'Specials',
     vendor: 'The Calabar Kitchen',
     imageId: 'ekpang-nkukwo',
+    isAvailable: true,
     ingredients: ['Cocoyam', 'Water yam', 'Periwinkle', 'Smoked Fish', 'Palm Oil', 'Scent leaves'],
   },
   {
@@ -71,6 +74,7 @@ export const allMeals: Meal[] = [
     category: 'Soups',
     vendor: 'Suya Spot',
     imageId: 'peppersoup',
+    isAvailable: true,
     ingredients: ['Goat Meat', 'Peppersoup Spice Mix', 'Scent Leaf', 'Chili Pepper'],
   },
   {
@@ -81,6 +85,7 @@ export const allMeals: Meal[] = [
     category: 'Snacks',
     vendor: 'Suya Spot',
     imageId: 'suya',
+    isAvailable: true,
     ingredients: ['Beef', 'Yaji (Suya Spice)', 'Onion', 'Cabbage', 'Tomato'],
   },
   {
@@ -91,6 +96,7 @@ export const allMeals: Meal[] = [
     category: 'Soups',
     vendor: 'City Chefs',
     imageId: 'atama-soup',
+    isAvailable: true,
     ingredients: ['Palm Fruit (Banga)', 'Atama Leaves', 'Dry Fish', 'Beef', 'Spices'],
     addons: [
       { id: 'extra-meat', name: 'Extra Beef', price: 500 },
@@ -105,6 +111,7 @@ export const allMeals: Meal[] = [
     category: 'Soups',
     vendor: 'The Calabar Kitchen',
     imageId: 'fisherman-soup',
+    isAvailable: true,
     ingredients: ['Fresh Fish', 'Prawns', 'Crabs', 'Okra', 'Uziza Leaves', 'Palm Oil'],
     addons: [
       { id: 'extra-prawns', name: 'Extra Prawns', price: 1200 },
@@ -119,6 +126,7 @@ export const allMeals: Meal[] = [
     category: 'Swallow',
     vendor: 'The Calabar Kitchen',
     imageId: 'pounded-yam',
+    isAvailable: true,
     ingredients: ['Yam'],
   },
   {
@@ -129,6 +137,7 @@ export const allMeals: Meal[] = [
     category: 'Swallow',
     vendor: 'City Chefs',
     imageId: 'eba',
+    isAvailable: true,
     ingredients: ['Cassava (Garri)'],
   },
   {
@@ -139,6 +148,7 @@ export const allMeals: Meal[] = [
     category: 'Specials',
     vendor: 'Mama Cass',
     imageId: 'jollof-rice',
+    isAvailable: true,
     ingredients: ['Rice', 'Tomato', 'Bell Peppers', 'Chicken', 'Spices'],
     addons: [
       { id: 'extra-chicken', name: 'Extra Chicken', price: 1000 },
@@ -153,6 +163,7 @@ export const allMeals: Meal[] = [
     category: 'Drinks',
     vendor: 'The Calabar Kitchen',
     imageId: 'chapman',
+    isAvailable: true,
     ingredients: ['Carbonated Drinks', 'Blackcurrant Syrup', 'Citrus Fruits'],
   },
    {
@@ -163,6 +174,7 @@ export const allMeals: Meal[] = [
     category: 'Soups',
     vendor: 'City Chefs',
     imageId: 'otong-soup',
+    isAvailable: true,
     ingredients: ['Ugwu Leaves', 'Uziza Leaves', 'Okra', 'Assorted Meats', 'Palm Oil'],
     addons: [
       { id: 'extra-meat', name: 'Extra Beef', price: 500 },
@@ -177,6 +189,7 @@ export const allMeals: Meal[] = [
     category: 'Soups',
     vendor: 'The Calabar Kitchen',
     imageId: 'abak-atama',
+    isAvailable: true,
     ingredients: ['Palm Fruit Concentrate', 'Atama Leaves', 'Beef', 'Dry Fish'],
      addons: [
       { id: 'extra-meat', name: 'Extra Beef', price: 500 },

@@ -1,4 +1,3 @@
-
 'use client';
 import {
   getAuth,
@@ -32,32 +31,48 @@ onAuthStateChanged(auth, async (user) => {
         if (!userDoc.exists()) {
              const batch = writeBatch(db);
 
-             // Determine role based on the flow they used to sign up
              const role = isSigningUpAsPartner ? 'chef' : 'customer';
              isSigningUpAsPartner = false; // Reset the flag immediately
 
              const isPartner = role === 'chef';
 
-             // Create the user document
+             // Update user profile in Auth
+             const displayName = user.displayName || (isPartner ? 'New Partner' : 'New Customer');
+             if (!user.displayName) {
+                await updateProfile(user, { displayName });
+             }
+
+             // Create the user document in Firestore
              batch.set(userRef, {
-                name: user.displayName || (isPartner ? 'New Partner' : 'New Customer'),
+                name: displayName,
                 email: user.email,
                 phone: user.phoneNumber,
                 role: role,
-                // Vetting status is not set to 'pending' immediately. It's set after profile setup.
-                vettingStatus: isPartner ? 'approved' : null, // Chef is approved to access setup page. Vetting starts after.
+                // Vetting status is NOT 'pending' on signup. It's set after profile setup.
+                vettingStatus: null,
                 createdAt: serverTimestamp(),
              }, { merge: true });
 
-             // If it's a chef, create their associated chef profile document
              if (isPartner) {
-                // Use a consistent ID for the chef profile, like the user's UID
+                // For chefs, create their associated chef profile document and wallet
                 const chefProfileRef = doc(db, 'chefs', user.uid); 
+                const walletRef = doc(db, 'wallets', user.uid);
+                
                 batch.set(chefProfileRef, {
                     ownerUserId: user.uid,
+                    name: displayName,
                     profileComplete: false,
+                    status: 'closed', // Default to closed
+                    rating: 0,
                     createdAt: serverTimestamp(),
                 });
+                
+                batch.set(walletRef, {
+                    balance: 0,
+                    pending: 0,
+                    createdAt: serverTimestamp()
+                });
+                
                 // Also update the user doc with the reference to the chef profile
                 batch.update(userRef, { chefProfileId: chefProfileRef.id });
              }
@@ -106,6 +121,7 @@ export async function signInWithEmail(email: string, password: string) {
 export async function signInWithGoogle() {
     const provider = new GoogleAuthProvider();
     try {
+        // We assume Google sign-in is for customers unless a different flow is built
         isSigningUpAsPartner = false;
         const result = await signInWithPopup(auth, provider);
         return { user: result.user, error: null };

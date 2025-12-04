@@ -1,42 +1,42 @@
 'use client';
-import { collection, addDoc, updateDoc, serverTimestamp, doc, Firestore } from 'firebase/firestore';
+import { collection, addDoc, updateDoc, serverTimestamp, doc, deleteDoc } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import { useFirestore } from '@/firebase';
 
 /**
  * Creates or updates a dish document in Firestore.
  *
- * @param db The Firestore instance.
  * @param chefId The ID of the chef creating/updating the dish.
  * @param data The dish data from the form.
  * @param dishId Optional ID of the dish to update. If not provided, a new dish is created.
  */
-export async function createOrUpdateDish(db: Firestore, chefId: string, data: any, dishId?: string) {
+export async function createOrUpdateDish(chefId: string, data: any, dishId?: string) {
+  const firestore = useFirestore();
+  if (!firestore) throw new Error("Firestore not available");
+  
   const dishData = {
     chefId,
-    title: data.title,
-    name: data.title, // for consistency with Meal type
-    vendor: chefId, // for consistency with Meal type
+    name: data.title,
+    vendor: chefId, 
     description: data.description,
     price: data.price,
     category: data.category,
     imageId: data.imageId,
-    ingredients: data.ingredients ? data.ingredients.split(',').map((s: string) => s.trim()) : [],
+    isLocalRecipe: data.isLocalRecipe,
+    madeFreshDaily: data.madeFreshDaily,
     updatedAt: serverTimestamp(),
   };
 
   try {
     if (dishId) {
-      // Update existing document
-      const dishRef = doc(db, 'dishes', dishId);
+      const dishRef = doc(firestore, 'dishes', dishId);
       await updateDoc(dishRef, dishData);
     } else {
-      // Create new document
-      const colRef = collection(db, 'dishes');
+      const colRef = collection(firestore, 'dishes');
       await addDoc(colRef, {
         ...dishData,
-        isAvailable: false, // Default to not available
-        inventoryCount: 0, // Default to 0
+        isAvailable: true,
         createdAt: serverTimestamp(),
       });
     }
@@ -47,24 +47,23 @@ export async function createOrUpdateDish(db: Firestore, chefId: string, data: an
       requestResourceData: dishData,
     });
     errorEmitter.emit('permission-error', permissionError);
-    // Re-throw to be caught by the UI
     throw e;
   }
 }
 
 /**
- * Updates the inventory count and availability of a single dish.
+ * Updates the availability of a single dish.
  *
- * @param db The Firestore instance.
+ * @param chefId The ID of the chef.
  * @param dishId The ID of the dish to update.
- * @param count The new inventory count.
+ * @param isAvailable The new availability status.
  */
-export function updateDishInventory(db: Firestore, dishId: string, count: number) {
-  const dishRef = doc(db, 'dishes', dishId);
-  const payload = {
-    inventoryCount: count,
-    isAvailable: count > 0,
-  };
+export function updateDishAvailability(chefId: string, dishId: string, isAvailable: boolean) {
+  const firestore = useFirestore();
+  if (!firestore) return;
+  const dishRef = doc(firestore, 'dishes', dishId);
+  const payload = { isAvailable };
+  
   updateDoc(dishRef, payload).catch((e) => {
     const permissionError = new FirestorePermissionError({
       path: dishRef.path,
@@ -72,6 +71,28 @@ export function updateDishInventory(db: Firestore, dishId: string, count: number
       requestResourceData: payload,
     });
     errorEmitter.emit('permission-error', permissionError);
-    console.error('Failed to update dish inventory:', e);
+    console.error('Failed to update dish availability:', e);
   });
+}
+
+
+/**
+ * Deletes a dish from Firestore.
+ *
+ * @param chefId The ID of the chef.
+ * @param dishId The ID of the dish to delete.
+ */
+export function deleteDish(chefId: string, dishId: string) {
+    const firestore = useFirestore();
+    if (!firestore) return;
+    const dishRef = doc(firestore, 'dishes', dishId);
+
+    deleteDoc(dishRef).catch((e) => {
+        const permissionError = new FirestorePermissionError({
+            path: dishRef.path,
+            operation: 'delete',
+        });
+        errorEmitter.emit('permission-error', permissionError);
+        console.error('Failed to delete dish:', e);
+    });
 }

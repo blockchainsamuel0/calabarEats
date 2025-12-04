@@ -1,4 +1,3 @@
-
 export interface Addon {
   id: string;
   name: string;
@@ -14,9 +13,14 @@ export interface Meal {
   vendor: string; // This is the Chef's User ID
   imageId: string;
   addons?: Addon[];
-  ingredients?: string[];
   isAvailable?: boolean;
+  isLocalRecipe?: boolean;
+  madeFreshDaily?: boolean;
+  // Deprecated, use vendor field instead.
+  chefId?: string;
+  // Not using these from original data
   inventoryCount?: number;
+  ingredients?: string[];
 }
 
 export interface CartItem {
@@ -80,6 +84,9 @@ export interface ChefProfile {
     },
     vettingPhotoUrls?: string[];
     profileComplete?: boolean;
+    photoUrl?: string;
+    rating?: number;
+    status?: 'open' | 'closed';
 }
 
 export interface PayoutDetails {

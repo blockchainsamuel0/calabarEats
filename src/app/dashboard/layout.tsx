@@ -1,24 +1,20 @@
 'use client';
 
-import { useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useUser, useFirestore, useDoc } from '@/firebase';
 import { doc } from 'firebase/firestore';
-import { Utensils, Package, Home, ChefHat, Loader2, ShieldAlert, Wallet } from 'lucide-react';
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-  SidebarProvider,
-  SidebarTrigger,
-  SidebarInset
-} from '@/components/ui/sidebar';
-import { Button } from '@/components/ui/button';
+import { LayoutGrid, Utensils, BarChart3, Settings, Loader2, ChefHat } from 'lucide-react';
 import type { UserProfile, ChefProfile } from '@/lib/types';
+import { useEffect, useMemo } from 'react';
+import AppHeader from '@/components/app-header';
+
+const navItems = [
+    { href: '/dashboard', label: 'Dashboard', icon: LayoutGrid },
+    { href: '/dashboard/dishes', label: 'Menu', icon: Utensils },
+    { href: '/dashboard/analytics', label: 'Analytics', icon: BarChart3 },
+    { href: '/dashboard/settings', label: 'Settings', icon: Settings },
+];
 
 export default function DashboardLayout({
   children,
@@ -40,18 +36,19 @@ export default function DashboardLayout({
   const { data: userData, loading: userLoading } = useDoc<UserProfile>(userDocRef);
 
   const chefProfileRef = useMemo(() => {
-    if (user && firestore && userData?.chefProfileId) {
-        return doc(firestore, 'chefs', userData.chefProfileId);
+    if (user && firestore) {
+        // A chef's profile ID is their UID
+        return doc(firestore, 'chefs', user.uid);
     }
     return undefined;
-  }, [user, firestore, userData]);
+  }, [user, firestore]);
 
   const { data: chefProfile, loading: chefLoading } = useDoc<ChefProfile>(chefProfileRef);
 
   const loading = userLoading || chefLoading;
-
+  
   useEffect(() => {
-    if (loading) return; // Wait for data to load
+    if (loading) return; 
 
     if (!user) {
         router.replace('/login');
@@ -68,8 +65,6 @@ export default function DashboardLayout({
         return;
     }
 
-    // After approval, check if profile is complete.
-    // If not, redirect to setup page.
     if (userData.vettingStatus === 'approved' && !chefProfile?.profileComplete) {
         if (pathname !== '/chef-profile-setup') {
             router.replace('/chef-profile-setup');
@@ -78,8 +73,7 @@ export default function DashboardLayout({
 
   }, [user, userData, chefProfile, loading, router, pathname]);
 
-
-  if (loading || !user || !userData || (userData.vettingStatus === 'approved' && !chefProfile?.profileComplete && pathname !== '/chef-profile-setup') || (userData.vettingStatus !== 'approved' && pathname !== '/chef-profile-setup')) {
+  if (loading || !user || !userData || (userData.role === 'chef' && userData.vettingStatus !== 'approved')) {
     return (
       <div className="flex h-screen w-full items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -92,53 +86,56 @@ export default function DashboardLayout({
       return <>{children}</>;
   }
 
+
   return (
-    <SidebarProvider>
-      <Sidebar side="left" variant="sidebar" collapsible="icon">
-        <SidebarHeader>
-          <Button variant="ghost" size="icon" className="h-10 w-10" asChild>
-            <Link href="/">
-              <ChefHat />
-              <span className="sr-only">Home</span>
-            </Link>
-          </Button>
-        </SidebarHeader>
-        <SidebarContent>
-          <SidebarMenu>
-            <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname.startsWith('/dashboard/orders')}>
-                    <Link href="/dashboard/orders">
-                        <Package />
-                        Orders
+    <div className="flex flex-col min-h-screen bg-muted/40">
+        <AppHeader />
+        <main className="flex-1 p-4 sm:p-6 pb-20">{children}</main>
+        <div className="fixed bottom-0 left-0 right-0 border-t bg-background md:hidden">
+            <nav className="flex justify-around items-center h-16">
+                {navItems.map((item) => (
+                    <Link
+                        key={item.href}
+                        href={item.href}
+                        className={`flex flex-col items-center justify-center gap-1 w-full h-full ${
+                            pathname === item.href
+                                ? 'text-primary'
+                                : 'text-muted-foreground'
+                        }`}
+                    >
+                        <item.icon className="w-5 h-5" />
+                        <span className="text-xs font-medium">{item.label}</span>
                     </Link>
-                </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname.startsWith('/dashboard/dishes')}>
-                    <Link href="/dashboard/dishes">
-                        <Utensils />
-                        Dishes
+                ))}
+            </nav>
+        </div>
+
+        {/* Desktop Sidebar - Hidden on mobile */}
+        <nav className="hidden md:flex fixed left-0 top-0 h-full flex-col border-r bg-background w-64 p-4">
+             <div className="flex items-center gap-2 h-16 border-b px-4 mb-4">
+                <ChefHat className="h-6 w-6 text-primary" />
+                <h1 className="text-lg font-semibold">Chef Dashboard</h1>
+            </div>
+            <div className="flex flex-col gap-2">
+                {navItems.map((item) => (
+                    <Link
+                        key={item.href}
+                        href={item.href}
+                        className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all ${
+                            pathname === item.href
+                                ? 'bg-primary/10 text-primary'
+                                : 'text-muted-foreground hover:text-primary'
+                        }`}
+                    >
+                        <item.icon className="h-4 w-4" />
+                        {item.label}
                     </Link>
-                </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname.startsWith('/dashboard/wallet')}>
-                    <Link href="/dashboard/wallet">
-                        <Wallet />
-                        Wallet
-                    </Link>
-                </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarContent>
-      </Sidebar>
-      <SidebarInset>
-        <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6">
-            <SidebarTrigger />
-            <h1 className="text-lg font-semibold">Chef Dashboard</h1>
-        </header>
-        <main className="flex-1 p-4 sm:p-6">{children}</main>
-      </SidebarInset>
-    </SidebarProvider>
+                ))}
+            </div>
+        </nav>
+         <div className="hidden md:block md:pl-64">
+             {/* This div is to offset the main content for the desktop sidebar */}
+         </div>
+    </div>
   );
 }
