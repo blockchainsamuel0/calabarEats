@@ -6,9 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Star, Eye, MessageCircle, Utensils } from 'lucide-react';
+import { Star, Eye, Utensils, TrendingUp } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { updateChefStatus } from '@/firebase/firestore/chefs';
+import { Separator } from '@/components/ui/separator';
 
 export default function DashboardPage() {
     const user = useUser();
@@ -22,10 +23,8 @@ export default function DashboardPage() {
         updateChefStatus(user.uid, newStatus);
     }
     
-    // Replace with real data from `vendorStats` when implemented
     const stats = {
         views: 125,
-        messages: 8,
         mostViewed: 'Afang Soup & Swallow',
     };
 
@@ -35,7 +34,6 @@ export default function DashboardPage() {
 
     return (
         <div className="space-y-6">
-            {/* Header Section */}
             <Card>
                 <CardContent className="p-4 flex items-center gap-4">
                     <Avatar className="h-16 w-16 border-2 border-primary">
@@ -63,30 +61,36 @@ export default function DashboardPage() {
                 </CardContent>
             </Card>
 
-            {/* Today's Summary */}
-            <div className="grid gap-4 md:grid-cols-3">
-                <Card>
-                    <CardHeader className="pb-2">
-                        <CardDescription>Total Views</CardDescription>
-                        <CardTitle className="text-4xl">{stats.views}</CardTitle>
-                    </CardHeader>
-                     <CardContent><p className="text-xs text-muted-foreground">Today</p></CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="pb-2">
-                        <CardDescription>Total Orders</CardDescription>
-                        <CardTitle className="text-4xl">{orders.length}</CardTitle>
-                    </CardHeader>
-                    <CardContent><p className="text-xs text-muted-foreground">Today</p></CardContent>
-                </Card>
-                 <Card>
-                    <CardHeader className="pb-2">
-                        <CardDescription>Most Viewed Dish</CardDescription>
-                        <CardTitle className="text-xl truncate">{stats.mostViewed}</CardTitle>
-                    </CardHeader>
-                    <CardContent><p className="text-xs text-muted-foreground">Today</p></CardContent>
-                </Card>
-            </div>
+            <Card>
+                <CardHeader>
+                    <CardTitle>Today's Summary</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="flex justify-between items-center">
+                        <div className='flex items-center gap-2'>
+                            <Eye className="w-5 h-5 text-muted-foreground" />
+                            <p className="text-muted-foreground">Total Views</p>
+                        </div>
+                        <p className="font-bold text-lg">{stats.views}</p>
+                    </div>
+                     <Separator />
+                    <div className="flex justify-between items-center">
+                         <div className='flex items-center gap-2'>
+                            <Utensils className="w-5 h-5 text-muted-foreground" />
+                            <p className="text-muted-foreground">Total Orders</p>
+                        </div>
+                        <p className="font-bold text-lg">{orders.length}</p>
+                    </div>
+                     <Separator />
+                    <div className="flex justify-between items-center">
+                        <div className='flex items-center gap-2'>
+                           <TrendingUp className="w-5 h-5 text-muted-foreground" />
+                            <p className="text-muted-foreground">Most Viewed Dish</p>
+                        </div>
+                        <p className="font-semibold text-lg truncate">{stats.mostViewed}</p>
+                    </div>
+                </CardContent>
+            </Card>
             
              <div>
                 <h2 className="text-2xl font-bold tracking-tight mb-4">Recent Orders</h2>
@@ -124,11 +128,27 @@ function DashboardSkeleton() {
                     <Skeleton className="h-8 w-24" />
                 </CardContent>
             </Card>
-            <div className="grid gap-4 md:grid-cols-3">
-                <Card><CardHeader><Skeleton className="h-10 w-1/2" /><Skeleton className="h-4 w-1/4 mt-2" /></CardHeader></Card>
-                <Card><CardHeader><Skeleton className="h-10 w-1/2" /><Skeleton className="h-4 w-1/4 mt-2" /></CardHeader></Card>
-                <Card><CardHeader><Skeleton className="h-10 w-3/4" /><Skeleton className="h-4 w-1/4 mt-2" /></CardHeader></Card>
-            </div>
+            <Card>
+                <CardHeader>
+                    <Skeleton className="h-6 w-1/3 mb-4" />
+                </CardHeader>
+                <CardContent className="space-y-4">
+                     <div className="flex justify-between items-center">
+                        <Skeleton className="h-5 w-1/4" />
+                        <Skeleton className="h-6 w-1/5" />
+                    </div>
+                     <Separator />
+                    <div className="flex justify-between items-center">
+                        <Skeleton className="h-5 w-1/4" />
+                        <Skeleton className="h-6 w-1/5" />
+                    </div>
+                     <Separator />
+                    <div className="flex justify-between items-center">
+                        <Skeleton className="h-5 w-1/3" />
+                        <Skeleton className="h-6 w-1/2" />
+                    </div>
+                </CardContent>
+            </Card>
         </div>
     );
 }
