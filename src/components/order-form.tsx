@@ -25,7 +25,8 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { createOrder } from '@/ai/orders';
+import { runFlow } from '@genkit-ai/next/client';
+import type { createOrder } from '@/ai/orders';
 import { Loader2 } from 'lucide-react';
 import { useUser } from '@/firebase';
 import { useRouter } from 'next/navigation';
@@ -85,7 +86,10 @@ export default function OrderForm({ isOpen, setIsOpen }: OrderFormProps) {
             phone: data.phone
         };
 
-      const result = await createOrder(orderInput);
+      const result = await runFlow<typeof createOrder>({
+        url: '/api/createOrder',
+        input: orderInput,
+      });
 
       console.log('Order created:', result);
       // clearCart is now handled by the genkit flow after successful order creation.
